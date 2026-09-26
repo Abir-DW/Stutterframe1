@@ -36,7 +36,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-gemini-api-key, X-goog-api-key, *');
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
@@ -151,7 +151,7 @@ app.use((req, res, next) => {
 });
 
 // API Key status and verification endpoints
-app.get('/api/key-status', (req: Request, res: Response) => {
+app.get(['/api/key-status', '/key-status'], (req: Request, res: Response) => {
   const reqKey = extractReqApiKey(req);
   const activeKey = resolveApiKey(reqKey);
   const isSet = Boolean(activeKey && activeKey.length > 5);
@@ -163,7 +163,7 @@ app.get('/api/key-status', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/key', async (req: Request, res: Response) => {
+app.post(['/api/key', '/key'], async (req: Request, res: Response) => {
   try {
     const { apiKey } = req.body || {};
     if (!apiKey || !String(apiKey).trim()) {
@@ -172,8 +172,8 @@ app.post('/api/key', async (req: Request, res: Response) => {
     }
 
     const testKey = String(apiKey).trim();
-    // Test key with light ping
-    const testRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent', {
+    // Test key with light ping using verified gemini-3.1-flash-lite
+    const testRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -306,8 +306,16 @@ function extractRetryDelaySeconds(error: any): number | null {
 // User-friendly error message cleaner (avoid raw JSON dumps)
 function cleanErrorMessage(error: any): string {
   const raw = typeof error === 'string' ? error : (error?.message || '');
-  if (raw.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') || raw.includes('UNAUTHENTICATED') || raw.includes('401') || raw.includes('invalid authentication credentials')) {
-    return 'Google Gemini API key or session token is missing or expired. Please select a valid Gemini API key in your workspace settings.';
+  if (
+    raw.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
+    raw.includes('UNAUTHENTICATED') ||
+    raw.includes('401') ||
+    raw.includes('invalid authentication credentials') ||
+    raw.includes('API_KEY_INVALID') ||
+    raw.includes('API key not valid') ||
+    raw.includes('missing or expired')
+  ) {
+    return 'Google Gemini API key or session token is missing or expired. Please select or enter a valid Gemini API key in settings.';
   }
   if (raw.includes('RESOURCE_EXHAUSTED') || raw.includes('429') || raw.includes('quota')) {
     return 'Google Gemini Free-Tier request limit reached. Automatic rate-limit cooldown in progress.';
@@ -316,6 +324,38 @@ function cleanErrorMessage(error: any): string {
     return 'Gemini AI model is momentarily experiencing high demand. Please try again shortly.';
   }
   return error?.message || 'Processing failed. Please retry.';
+}
+
+// Unified API Error handler ensuring accurate HTTP status codes (401 for auth, 429 for rate limit, 500 otherwise)
+function handleApiError(res: Response, error: any) {
+  const retryDelay = extractRetryDelaySeconds(error);
+  if (retryDelay) {
+    setQuotaCooldown(retryDelay);
+  }
+  const raw = String(error?.message || error || '');
+  const is401 =
+    error?.status === 401 ||
+    raw.includes('401') ||
+    raw.includes('UNAUTHENTICATED') ||
+    raw.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
+    raw.includes('invalid authentication credentials') ||
+    raw.includes('API_KEY_INVALID') ||
+    raw.includes('API key not valid') ||
+    raw.includes('missing or expired');
+
+  const is429 =
+    !is401 && (
+      error?.status === 429 ||
+      raw.includes('429') ||
+      raw.includes('RESOURCE_EXHAUSTED') ||
+      raw.includes('quota')
+    );
+
+  const statusCode = is401 ? 401 : is429 ? 429 : 500;
+  return res.status(statusCode).json({
+    error: cleanErrorMessage(error),
+    retryDelaySeconds: retryDelay,
+  });
 }
 
 // Normalizes varied contents formats (string, object with parts, array of parts, or standard content array) into valid Gemini REST API contents format
@@ -474,7 +514,7 @@ async function generateWithRetry(params: {
   config?: any;
   apiKey?: string;
 }) {
-  const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+  const models = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
   let lastError: any = null;
 
   // Phase 1: Try with requested configuration (including googleSearch if configured)
@@ -660,7 +700,7 @@ function extractJsonFromText(rawText: string): any {
 // -------------------------------------------------------------
 // 1. Movie Picker (Search Grounded)
 // -------------------------------------------------------------
-app.post('/api/movie-picker', async (req: Request, res: Response) => {
+app.post(['/api/movie-picker', '/movie-picker'], async (req: Request, res: Response) => {
   try {
     const { genre, language, era, mood, excludeTitles } = req.body;
 
@@ -779,27 +819,14 @@ Output only the JSON code block.`;
     });
   } catch (error: any) {
     console.error('Error in /api/movie-picker:', error);
-    const retryDelay = extractRetryDelaySeconds(error);
-    if (retryDelay) {
-      setQuotaCooldown(retryDelay);
-    }
-    const is429 =
-      error?.status === 429 ||
-      String(error?.message).includes('429') ||
-      String(error?.message).includes('RESOURCE_EXHAUSTED') ||
-      String(error?.message).includes('quota');
-
-    res.status(is429 ? 429 : 500).json({
-      error: cleanErrorMessage(error),
-      retryDelaySeconds: retryDelay,
-    });
+    return handleApiError(res, error);
   }
 });
 
 // -------------------------------------------------------------
 // 2. Shot Rater (Cinematography Vision Feedback)
 // -------------------------------------------------------------
-app.post('/api/shot-rater', async (req: Request, res: Response) => {
+app.post(['/api/shot-rater', '/shot-rater'], async (req: Request, res: Response) => {
   try {
     const { imageBase64, mimeType = 'image/jpeg', userNotes, tier = 'constructive' } = req.body;
 
@@ -962,34 +989,21 @@ Return only JSON.`;
       parsed.tier = selectedTier;
     }
 
-    recordModelRequest('gemini-3.5-flash-lite');
+    recordModelRequest('gemini-3.1-flash-lite');
 
     res.json({
       rating: parsed,
     });
   } catch (error: any) {
     console.error('Error in /api/shot-rater:', error);
-    const retryDelay = extractRetryDelaySeconds(error);
-    if (retryDelay) {
-      setQuotaCooldown(retryDelay);
-    }
-    const is429 =
-      error?.status === 429 ||
-      String(error?.message).includes('429') ||
-      String(error?.message).includes('RESOURCE_EXHAUSTED') ||
-      String(error?.message).includes('quota');
-
-    res.status(is429 ? 429 : 500).json({
-      error: cleanErrorMessage(error),
-      retryDelaySeconds: retryDelay,
-    });
+    return handleApiError(res, error);
   }
 });
 
 // -------------------------------------------------------------
 // 3. Script Lab (Critique or Co-Write in Screenplay Format)
 // -------------------------------------------------------------
-app.post('/api/script-lab', async (req: Request, res: Response) => {
+app.post(['/api/script-lab', '/script-lab'], async (req: Request, res: Response) => {
   try {
     const {
       mode,
@@ -1177,32 +1191,19 @@ Return only JSON.`;
           parsed.storyAndOutline = parsed.screenplayText;
         }
       }
-      recordModelRequest('gemini-3.5-flash-lite');
+      recordModelRequest('gemini-3.1-flash-lite');
       return res.json({ result: parsed, mode: 'cowrite' });
     }
   } catch (error: any) {
     console.error('Error in /api/script-lab:', error);
-    const retryDelay = extractRetryDelaySeconds(error);
-    if (retryDelay) {
-      setQuotaCooldown(retryDelay);
-    }
-    const is429 =
-      error?.status === 429 ||
-      String(error?.message).includes('429') ||
-      String(error?.message).includes('RESOURCE_EXHAUSTED') ||
-      String(error?.message).includes('quota');
-
-    res.status(is429 ? 429 : 500).json({
-      error: cleanErrorMessage(error),
-      retryDelaySeconds: retryDelay,
-    });
+    return handleApiError(res, error);
   }
 });
 
 // -------------------------------------------------------------
 // 4. Gear Suggestor (Search Grounded, INR Prices, Real Links)
 // -------------------------------------------------------------
-app.post('/api/gear-suggestor', async (req: Request, res: Response) => {
+app.post(['/api/gear-suggestor', '/gear-suggestor'], async (req: Request, res: Response) => {
   try {
     const { budgetINR, gearType, brandPreference, shootType } = req.body;
 
@@ -1339,20 +1340,7 @@ Return only JSON.`;
     });
   } catch (error: any) {
     console.error('Error in /api/gear-suggestor:', error);
-    const retryDelay = extractRetryDelaySeconds(error);
-    if (retryDelay) {
-      setQuotaCooldown(retryDelay);
-    }
-    const is429 =
-      error?.status === 429 ||
-      String(error?.message).includes('429') ||
-      String(error?.message).includes('RESOURCE_EXHAUSTED') ||
-      String(error?.message).includes('quota');
-
-    res.status(is429 ? 429 : 500).json({
-      error: cleanErrorMessage(error),
-      retryDelaySeconds: retryDelay,
-    });
+    return handleApiError(res, error);
   }
 });
 
@@ -1495,7 +1483,7 @@ function matchEditorLogoAndUrl(editorName: string): { logoUrl: string | null; do
   };
 }
 
-app.post('/api/editor-advisor', async (req: Request, res: Response) => {
+app.post(['/api/editor-advisor', '/editor-advisor'], async (req: Request, res: Response) => {
   try {
     const {
       deviceCategory,
@@ -1642,27 +1630,14 @@ Return only JSON.`;
     });
   } catch (error: any) {
     console.error('Error in /api/editor-advisor:', error);
-    const retryDelay = extractRetryDelaySeconds(error);
-    if (retryDelay) {
-      setQuotaCooldown(retryDelay);
-    }
-    const is429 =
-      error?.status === 429 ||
-      String(error?.message).includes('429') ||
-      String(error?.message).includes('RESOURCE_EXHAUSTED') ||
-      String(error?.message).includes('quota');
-
-    res.status(is429 ? 429 : 500).json({
-      error: cleanErrorMessage(error),
-      retryDelaySeconds: retryDelay,
-    });
+    return handleApiError(res, error);
   }
 });
 
 // -------------------------------------------------------------
 // 6. StutterFrame Assistant (Fast Flash-Lite Streaming Chatbot)
 // -------------------------------------------------------------
-app.post('/api/assistant/stream', async (req: Request, res: Response) => {
+app.post(['/api/assistant/stream', '/assistant/stream'], async (req: Request, res: Response) => {
   try {
     const { messages, forceSearch } = req.body;
 
@@ -1748,7 +1723,7 @@ Keep responses concise, scannable, and rapid.`;
 });
 
 // Non-streaming fallback for /api/assistant using Flash-Lite and minimal thinking
-app.post('/api/assistant', async (req: Request, res: Response) => {
+app.post(['/api/assistant', '/assistant'], async (req: Request, res: Response) => {
   try {
     const { messages, forceSearch } = req.body;
 
@@ -1805,34 +1780,21 @@ Keep responses concise, scannable, and engaging.`;
     });
   } catch (error: any) {
     console.error('Error in /api/assistant:', error);
-    const retryDelay = extractRetryDelaySeconds(error);
-    if (retryDelay) {
-      setQuotaCooldown(retryDelay);
-    }
-    const is429 =
-      error?.status === 429 ||
-      String(error?.message).includes('429') ||
-      String(error?.message).includes('RESOURCE_EXHAUSTED') ||
-      String(error?.message).includes('quota');
-
-    res.status(is429 ? 429 : 500).json({
-      error: cleanErrorMessage(error),
-      retryDelaySeconds: retryDelay,
-    });
+    return handleApiError(res, error);
   }
 });
 
 // -------------------------------------------------------------
 // 6. Live Quota & Prompt Tracker Status
 // -------------------------------------------------------------
-app.get('/api/quota', (_req: Request, res: Response) => {
+app.get(['/api/quota', '/quota'], (_req: Request, res: Response) => {
   res.json(getQuotaStatus());
 });
 
 // -------------------------------------------------------------
 // 7. Health Check for Vercel / Cloud Run Monitoring
 // -------------------------------------------------------------
-app.get('/api/health', (_req: Request, res: Response) => {
+app.get(['/api/health', '/health'], (_req: Request, res: Response) => {
   res.json({ status: 'ok', service: 'StutterFrame Cinema Toolkit', timestamp: Date.now() });
 });
 

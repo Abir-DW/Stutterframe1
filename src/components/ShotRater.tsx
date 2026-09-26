@@ -23,8 +23,8 @@ import { ShotRatingResult, CritiqueTier } from '../types';
 import { ResearchingIndicator, ErrorState } from './ResearchingIndicator';
 import { fetchWithAuth } from '../utils/api';
 
-// Helper to optimize and resize large images on client to prevent upload timeouts
-function optimizeImage(file: File, maxWidth = 1600, quality = 0.88): Promise<{ dataUrl: string; mimeType: string }> {
+// Helper to optimize and resize large images on client to prevent upload timeouts & Vercel 4.5MB payload limits
+function optimizeImage(file: File, maxWidth = 1280, quality = 0.82): Promise<{ dataUrl: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
@@ -58,7 +58,13 @@ function optimizeImage(file: File, maxWidth = 1600, quality = 0.88): Promise<{ d
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        const optimizedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        let optimizedDataUrl = canvas.toDataURL('image/jpeg', quality);
+
+        // If still large (> 2.5MB base64), compress a bit more
+        if (optimizedDataUrl.length > 2500000) {
+          optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.72);
+        }
+
         resolve({ dataUrl: optimizedDataUrl, mimeType: 'image/jpeg' });
       };
       img.src = e.target?.result as string;
