@@ -7,15 +7,30 @@ import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let appDir = process.cwd();
+try {
+  if (typeof __dirname !== 'undefined') {
+    appDir = __dirname;
+  } else if (typeof import.meta !== 'undefined' && import.meta.url) {
+    appDir = path.dirname(fileURLToPath(import.meta.url));
+  }
+} catch {
+  appDir = process.cwd();
+}
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
-// Support up to 25MB JSON & URL-encoded bodies for high-res still frame uploads
-app.use(express.json({ limit: '25mb' }));
-app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+// Body parser middleware: Only parse if req.body has not already been populated by Vercel serverless runtime
+app.use((req, res, next) => {
+  if (req.body !== undefined && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+    return next();
+  }
+  express.json({ limit: '25mb' })(req, res, (err) => {
+    if (err) return next(err);
+    express.urlencoded({ extended: true, limit: '25mb' })(req, res, next);
+  });
+});
 
 // CORS & Preflight handling for Vercel and cross-origin environments
 app.use((req, res, next) => {
@@ -23,7 +38,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+    return res.status(204).end();
   }
   next();
 });
@@ -1618,7 +1633,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.resolve(__dirname, 'dist');
+    const distPath = path.resolve(appDir, 'dist');
     app.use(express.static(distPath));
     app.get('*', (_req, res) => {
       res.sendFile(path.resolve(distPath, 'index.html'));
@@ -1629,6 +1644,16 @@ async function startServer() {
     console.log(`🎬 StutterFrame server running on port ${PORT} (${isProd ? 'production' : 'development'})`);
   });
 }
+
+// Global error handler to guarantee clear JSON output and prevent function crashes
+app.use((err: any, _req: Request, res: Response, _next: any) => {
+  console.error('Express serverless error:', err);
+  if (!res.headersSent) {
+    res.status(500).json({
+      error: err?.message || 'Server error processing request.',
+    });
+  }
+});
 
 // Only start the HTTP listener when running as a standalone node process (not in Vercel serverless)
 if (!process.env.VERCEL) {
