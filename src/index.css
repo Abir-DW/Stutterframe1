@@ -1,0 +1,513 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #09090b;
+    --accent-primary: #f59e0b;
+    --accent-glow: rgba(245, 158, 11, 0.25);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: #f4f4f5;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.3s ease;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  h1, h2, h3, .font-courier {
+    font-family: 'Courier Prime', Courier, monospace;
+    letter-spacing: -0.01em;
+  }
+
+  /* Prevent auto-zoom on iOS when tapping text inputs */
+  @media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="search"],
+    input[type="number"],
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
+}
+
+/* =========================================================================
+   CINEMATIC COLOR THEMES (Global Overrides)
+   ========================================================================= */
+
+/* 1. Neon Cyberpunk (Electric Cyan & Neon Magenta / Violet) */
+[data-theme="cyberpunk"] {
+  --bg-main: #040714;
+}
+[data-theme="cyberpunk"] body {
+  background-color: #040714 !important;
+}
+[data-theme="cyberpunk"] .text-amber-400,
+[data-theme="cyberpunk"] .text-amber-300,
+[data-theme="cyberpunk"] .text-amber-500 {
+  color: #00f2fe !important;
+}
+[data-theme="cyberpunk"] .bg-amber-500,
+[data-theme="cyberpunk"] .bg-amber-400 {
+  background-color: #00f2fe !important;
+  color: #050814 !important;
+}
+[data-theme="cyberpunk"] .bg-gradient-to-r.from-amber-500,
+[data-theme="cyberpunk"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #00f2fe 0%, #a855f7 100%) !important;
+  color: #050814 !important;
+}
+[data-theme="cyberpunk"] .border-amber-500,
+[data-theme="cyberpunk"] .border-amber-500\/40,
+[data-theme="cyberpunk"] .border-amber-500\/30,
+[data-theme="cyberpunk"] .border-amber-500\/50,
+[data-theme="cyberpunk"] .border-amber-500\/20,
+[data-theme="cyberpunk"] .border-amber-400 {
+  border-color: rgba(0, 242, 254, 0.45) !important;
+}
+[data-theme="cyberpunk"] .bg-amber-500\/10,
+[data-theme="cyberpunk"] .bg-amber-500\/15,
+[data-theme="cyberpunk"] .bg-amber-500\/20,
+[data-theme="cyberpunk"] .bg-amber-950\/20,
+[data-theme="cyberpunk"] .bg-amber-950\/30 {
+  background-color: rgba(0, 242, 254, 0.12) !important;
+}
+[data-theme="cyberpunk"] .fill-amber-400 {
+  fill: #00f2fe !important;
+}
+
+/* 2. Emerald 16mm (Kodak Vision & Fujifilm Vivid Green) */
+[data-theme="emerald"] {
+  --bg-main: #050e0b;
+}
+[data-theme="emerald"] body {
+  background-color: #050e0b !important;
+}
+[data-theme="emerald"] .text-amber-400,
+[data-theme="emerald"] .text-amber-300,
+[data-theme="emerald"] .text-amber-500 {
+  color: #10b981 !important;
+}
+[data-theme="emerald"] .bg-amber-500,
+[data-theme="emerald"] .bg-amber-400 {
+  background-color: #10b981 !important;
+  color: #03140e !important;
+}
+[data-theme="emerald"] .bg-gradient-to-r.from-amber-500,
+[data-theme="emerald"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #03140e !important;
+}
+[data-theme="emerald"] .border-amber-500,
+[data-theme="emerald"] .border-amber-500\/40,
+[data-theme="emerald"] .border-amber-500\/30,
+[data-theme="emerald"] .border-amber-500\/50,
+[data-theme="emerald"] .border-amber-500\/20,
+[data-theme="emerald"] .border-amber-400 {
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+[data-theme="emerald"] .bg-amber-500\/10,
+[data-theme="emerald"] .bg-amber-500\/15,
+[data-theme="emerald"] .bg-amber-500\/20,
+[data-theme="emerald"] .bg-amber-950\/20,
+[data-theme="emerald"] .bg-amber-950\/30 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+}
+[data-theme="emerald"] .fill-amber-400 {
+  fill: #10b981 !important;
+}
+
+/* 3. Monochrome Chiaroscuro (High-Contrast Black & Pure Silver White) */
+[data-theme="noir"] {
+  --bg-main: #000000;
+}
+[data-theme="noir"] body {
+  background-color: #000000 !important;
+}
+[data-theme="noir"] .text-amber-400,
+[data-theme="noir"] .text-amber-300,
+[data-theme="noir"] .text-amber-500 {
+  color: #f4f4f5 !important;
+}
+[data-theme="noir"] .bg-amber-500,
+[data-theme="noir"] .bg-amber-400 {
+  background-color: #f4f4f5 !important;
+  color: #000000 !important;
+}
+[data-theme="noir"] .bg-gradient-to-r.from-amber-500,
+[data-theme="noir"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%) !important;
+  color: #000000 !important;
+}
+[data-theme="noir"] .border-amber-500,
+[data-theme="noir"] .border-amber-500\/40,
+[data-theme="noir"] .border-amber-500\/30,
+[data-theme="noir"] .border-amber-500\/50,
+[data-theme="noir"] .border-amber-500\/20,
+[data-theme="noir"] .border-amber-400 {
+  border-color: rgba(244, 244, 245, 0.45) !important;
+}
+[data-theme="noir"] .bg-amber-500\/10,
+[data-theme="noir"] .bg-amber-500\/15,
+[data-theme="noir"] .bg-amber-500\/20,
+[data-theme="noir"] .bg-amber-950\/20,
+[data-theme="noir"] .bg-amber-950\/30 {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+[data-theme="noir"] .fill-amber-400 {
+  fill: #f4f4f5 !important;
+}
+
+/* 4. Wes Anderson (Pastel Symphony: Mustard Gold & Dusty Blush Coral) */
+[data-theme="wes-anderson"] {
+  --bg-main: #14110e;
+}
+[data-theme="wes-anderson"] body {
+  background-color: #14110e !important;
+}
+[data-theme="wes-anderson"] .text-amber-400,
+[data-theme="wes-anderson"] .text-amber-300,
+[data-theme="wes-anderson"] .text-amber-500 {
+  color: #fbbf24 !important;
+}
+[data-theme="wes-anderson"] .bg-amber-500,
+[data-theme="wes-anderson"] .bg-amber-400 {
+  background-color: #fbbf24 !important;
+  color: #1a140d !important;
+}
+[data-theme="wes-anderson"] .bg-gradient-to-r.from-amber-500,
+[data-theme="wes-anderson"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #fbbf24 0%, #f472b6 100%) !important;
+  color: #1a140d !important;
+}
+[data-theme="wes-anderson"] .border-amber-500,
+[data-theme="wes-anderson"] .border-amber-500\/40,
+[data-theme="wes-anderson"] .border-amber-500\/30,
+[data-theme="wes-anderson"] .border-amber-500\/50,
+[data-theme="wes-anderson"] .border-amber-500\/20,
+[data-theme="wes-anderson"] .border-amber-400 {
+  border-color: rgba(251, 191, 36, 0.45) !important;
+}
+[data-theme="wes-anderson"] .bg-amber-500\/10,
+[data-theme="wes-anderson"] .bg-amber-500\/15,
+[data-theme="wes-anderson"] .bg-amber-500\/20,
+[data-theme="wes-anderson"] .bg-amber-950\/20,
+[data-theme="wes-anderson"] .bg-amber-950\/30 {
+  background-color: rgba(251, 191, 36, 0.12) !important;
+}
+[data-theme="wes-anderson"] .fill-amber-400 {
+  fill: #fbbf24 !important;
+}
+
+/* 5. Blade Runner 2049 (Dystopian Amber Smog & Industrial Neon Teal) */
+[data-theme="blade-runner"] {
+  --bg-main: #0c0a09;
+}
+[data-theme="blade-runner"] body {
+  background-color: #0c0a09 !important;
+}
+[data-theme="blade-runner"] .text-amber-400,
+[data-theme="blade-runner"] .text-amber-300,
+[data-theme="blade-runner"] .text-amber-500 {
+  color: #f97316 !important;
+}
+[data-theme="blade-runner"] .bg-amber-500,
+[data-theme="blade-runner"] .bg-amber-400 {
+  background-color: #f97316 !important;
+  color: #0f0b08 !important;
+}
+[data-theme="blade-runner"] .bg-gradient-to-r.from-amber-500,
+[data-theme="blade-runner"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #f97316 0%, #06b6d4 100%) !important;
+  color: #0f0b08 !important;
+}
+[data-theme="blade-runner"] .border-amber-500,
+[data-theme="blade-runner"] .border-amber-500\/40,
+[data-theme="blade-runner"] .border-amber-500\/30,
+[data-theme="blade-runner"] .border-amber-500\/50,
+[data-theme="blade-runner"] .border-amber-500\/20,
+[data-theme="blade-runner"] .border-amber-400 {
+  border-color: rgba(249, 115, 22, 0.45) !important;
+}
+[data-theme="blade-runner"] .bg-amber-500\/10,
+[data-theme="blade-runner"] .bg-amber-500\/15,
+[data-theme="blade-runner"] .bg-amber-500\/20,
+[data-theme="blade-runner"] .bg-amber-950\/20,
+[data-theme="blade-runner"] .bg-amber-950\/30 {
+  background-color: rgba(249, 115, 22, 0.12) !important;
+}
+[data-theme="blade-runner"] .fill-amber-400 {
+  fill: #f97316 !important;
+}
+
+/* 6. Technicolor 3-Strip (1950s Saturated Ruby Crimson & Goldenrod) */
+[data-theme="technicolor"] {
+  --bg-main: #0e0709;
+}
+[data-theme="technicolor"] body {
+  background-color: #0e0709 !important;
+}
+[data-theme="technicolor"] .text-amber-400,
+[data-theme="technicolor"] .text-amber-300,
+[data-theme="technicolor"] .text-amber-500 {
+  color: #f43f5e !important;
+}
+[data-theme="technicolor"] .bg-amber-500,
+[data-theme="technicolor"] .bg-amber-400 {
+  background-color: #f43f5e !important;
+  color: #17080a !important;
+}
+[data-theme="technicolor"] .bg-gradient-to-r.from-amber-500,
+[data-theme="technicolor"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #f43f5e 0%, #eab308 100%) !important;
+  color: #17080a !important;
+}
+[data-theme="technicolor"] .border-amber-500,
+[data-theme="technicolor"] .border-amber-500\/40,
+[data-theme="technicolor"] .border-amber-500\/30,
+[data-theme="technicolor"] .border-amber-500\/50,
+[data-theme="technicolor"] .border-amber-500\/20,
+[data-theme="technicolor"] .border-amber-400 {
+  border-color: rgba(244, 63, 94, 0.45) !important;
+}
+[data-theme="technicolor"] .bg-amber-500\/10,
+[data-theme="technicolor"] .bg-amber-500\/15,
+[data-theme="technicolor"] .bg-amber-500\/20,
+[data-theme="technicolor"] .bg-amber-950\/20,
+[data-theme="technicolor"] .bg-amber-950\/30 {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+}
+[data-theme="technicolor"] .fill-amber-400 {
+  fill: #f43f5e !important;
+}
+
+/* 7. Midnight Blue (Deep Arctic Cobalt & Electric Indigo) */
+[data-theme="midnight"] {
+  --bg-main: #030712;
+}
+[data-theme="midnight"] body {
+  background-color: #030712 !important;
+}
+[data-theme="midnight"] .text-amber-400,
+[data-theme="midnight"] .text-amber-300,
+[data-theme="midnight"] .text-amber-500 {
+  color: #38bdf8 !important;
+}
+[data-theme="midnight"] .bg-amber-500,
+[data-theme="midnight"] .bg-amber-400 {
+  background-color: #38bdf8 !important;
+  color: #030b17 !important;
+}
+[data-theme="midnight"] .bg-gradient-to-r.from-amber-500,
+[data-theme="midnight"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%) !important;
+  color: #030b17 !important;
+}
+[data-theme="midnight"] .border-amber-500,
+[data-theme="midnight"] .border-amber-500\/40,
+[data-theme="midnight"] .border-amber-500\/30,
+[data-theme="midnight"] .border-amber-500\/50,
+[data-theme="midnight"] .border-amber-500\/20,
+[data-theme="midnight"] .border-amber-400 {
+  border-color: rgba(56, 189, 248, 0.45) !important;
+}
+[data-theme="midnight"] .bg-amber-500\/10,
+[data-theme="midnight"] .bg-amber-500\/15,
+[data-theme="midnight"] .bg-amber-500\/20,
+[data-theme="midnight"] .bg-amber-950\/20,
+[data-theme="midnight"] .bg-amber-950\/30 {
+  background-color: rgba(56, 189, 248, 0.12) !important;
+}
+[data-theme="midnight"] .fill-amber-400 {
+  fill: #38bdf8 !important;
+}
+
+/* 8. Customizable Director Palette (Live Dynamic CSS Variables) */
+[data-theme="custom"] body {
+  background-color: var(--bg-main) !important;
+}
+[data-theme="custom"] .text-amber-400,
+[data-theme="custom"] .text-amber-300,
+[data-theme="custom"] .text-amber-500 {
+  color: var(--accent-primary) !important;
+}
+[data-theme="custom"] .bg-amber-500,
+[data-theme="custom"] .bg-amber-400 {
+  background-color: var(--accent-primary) !important;
+  color: #09090b !important;
+}
+[data-theme="custom"] .bg-gradient-to-r.from-amber-500,
+[data-theme="custom"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, var(--accent-primary) 0%, var(--custom-accent, #fbbf24) 100%) !important;
+  color: #09090b !important;
+}
+[data-theme="custom"] .border-amber-500,
+[data-theme="custom"] .border-amber-500\/40,
+[data-theme="custom"] .border-amber-500\/30,
+[data-theme="custom"] .border-amber-500\/50,
+[data-theme="custom"] .border-amber-500\/20,
+[data-theme="custom"] .border-amber-400 {
+  border-color: var(--accent-primary) !important;
+  opacity: 0.85;
+}
+[data-theme="custom"] .bg-amber-500\/10,
+[data-theme="custom"] .bg-amber-500\/15,
+[data-theme="custom"] .bg-amber-500\/20,
+[data-theme="custom"] .bg-amber-950\/20,
+[data-theme="custom"] .bg-amber-950\/30 {
+  background-color: var(--accent-primary) !important;
+  opacity: 0.15;
+}
+[data-theme="custom"] .fill-amber-400 {
+  fill: var(--accent-primary) !important;
+}
+
+/* Polished touch and button interaction */
+button, a {
+  touch-action: manipulation;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeInScale 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Film Grain Overlay with subtle frame-by-frame flicker */
+.film-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 50;
+  opacity: 0.55;
+  animation: grainFlicker 0.25s steps(2) infinite;
+}
+
+@keyframes grainFlicker {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(-1px, 1px); }
+  100% { transform: translate(1px, -1px); }
+}
+
+/* Soft Cinema Vignette */
+.cinema-vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: radial-gradient(circle at 50% 50%, transparent 68%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0d10;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #e5a93c;
+}
+
+/* =========================================================================
+   CUSTOM CINEMATIC CURSOR & INTERACTION FX
+   ========================================================================= */
+
+/* Only hide default cursor when custom cursor is active on fine-pointer desktop */
+html.has-custom-cursor,
+html.has-custom-cursor body,
+html.has-custom-cursor a,
+html.has-custom-cursor button,
+html.has-custom-cursor input,
+html.has-custom-cursor select,
+html.has-custom-cursor textarea,
+html.has-custom-cursor [role="button"],
+html.has-custom-cursor .cursor-pointer {
+  cursor: none !important;
+}
+
+/* 1. Refined, Gentle Camera Flash Animation (Less Intense, Soft Feathering) */
+@keyframes cameraFlashSoft {
+  0% {
+    transform: scale(0.35);
+    opacity: 0.45;
+    filter: blur(1px);
+  }
+  40% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+    filter: blur(6px);
+  }
+}
+
+.animate-cameraFlashSoft {
+  animation: cameraFlashSoft 0.28s cubic-bezier(0.12, 0.8, 0.25, 1) forwards;
+}
+
+/* 2. Slate Clapper Stick Snap Animation */
+@keyframes slateSnapClap {
+  0% {
+    transform: rotate(-18deg);
+  }
+  35% {
+    transform: rotate(0deg);
+  }
+  60% {
+    transform: rotate(-5deg);
+  }
+  80% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-16deg);
+  }
+}
+
+.animate-slateSnapClap {
+  animation: slateSnapClap 0.32s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+/* 3. Subtle Micro Accent for Slate Snap (Concentric Circles Removed) */
+@keyframes slateMicroSnap {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.animate-slateMicroSnap {
+  animation: slateMicroSnap 0.22s ease-out forwards;
+}

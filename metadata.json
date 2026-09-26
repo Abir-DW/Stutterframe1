@@ -1,0 +1,6 @@
+{
+  "name": "StutterFrame",
+  "description": "Cinematic toolkit for filmmakers and movie lovers — featuring AI-powered movie research, shot analysis, script drafting, and gear recommendations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
