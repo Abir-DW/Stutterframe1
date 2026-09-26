@@ -139,10 +139,17 @@ export const MoviePicker: React.FC = () => {
       });
 
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        const delay = errData.retryDelaySeconds || (res.status === 429 ? 15 : null);
-        setRetryDelaySeconds(delay);
-        throw new Error(errData.error || 'Failed to research movie recommendation.');
+        let errMessage = '';
+        try {
+          const errData = await res.json();
+          const delay = errData.retryDelaySeconds || (res.status === 429 ? 15 : null);
+          setRetryDelaySeconds(delay);
+          errMessage = errData.error || errData.message;
+        } catch {
+          const raw = await res.text().catch(() => '');
+          errMessage = raw ? `Server returned: ${raw.slice(0, 180)}` : `Request failed with HTTP status ${res.status}`;
+        }
+        throw new Error(errMessage || `Failed to research movie recommendation (${res.status}).`);
       }
 
       const data = await res.json();

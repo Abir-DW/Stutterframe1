@@ -30,6 +30,13 @@ app.use((req, res, next) => {
 
 // Normalize URLs if a serverless proxy or rewrite strips the '/api' prefix
 app.use((req, _res, next) => {
+  // Check if Vercel or a reverse proxy forwarded the real URI in headers
+  const forwarded = (req.headers['x-forwarded-uri'] || req.headers['x-matched-path']) as string;
+  if (forwarded && forwarded.includes('/api/')) {
+    const apiIndex = forwarded.indexOf('/api/');
+    req.url = forwarded.substring(apiIndex);
+  }
+
   if (
     !req.url.startsWith('/api') &&
     (req.url.startsWith('/movie-picker') ||
@@ -46,28 +53,40 @@ app.use((req, _res, next) => {
   next();
 });
 
-const apiKey =
-  process.env.GEMINI_API_KEY ||
-  process.env.GOOGLE_API_KEY ||
-  process.env.VITE_GEMINI_API_KEY ||
-  '';
+// Dynamic API Key retrieval for serverless environments
+function getApiKey(): string {
+  return (
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.VITE_GEMINI_API_KEY ||
+    ''
+  );
+}
 
-// Shared Gemini client configured with AI Studio telemetry User-Agent
-const ai = new GoogleGenAI({
-  apiKey: apiKey || 'dummy-key-placeholder',
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
+// Shared Gemini client factory to ensure fresh environment variable binding
+function getAiClient(): GoogleGenAI {
+  const key = getApiKey();
+  return new GoogleGenAI({
+    apiKey: key || 'dummy-key-placeholder',
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      },
     },
-  },
-});
+  });
+}
 
 // Guard API routes if GEMINI_API_KEY is not set (e.g. fresh Vercel deploy)
-app.use('/api', (req, res, next) => {
-  if (req.path === '/health' || req.path === '/quota') {
+app.use((req, res, next) => {
+  const isApi = req.url.startsWith('/api') || req.path.startsWith('/api');
+  if (!isApi) {
     return next();
   }
-  if (!apiKey || apiKey === 'dummy-key-placeholder') {
+  if (req.path.endsWith('/health') || req.path.endsWith('/quota')) {
+    return next();
+  }
+  const key = getApiKey();
+  if (!key || key === 'dummy-key-placeholder') {
     return res.status(500).json({
       error:
         'GEMINI_API_KEY is not configured. Please add GEMINI_API_KEY in your Vercel Project Settings > Environment Variables, then redeploy.',
@@ -202,6 +221,7 @@ async function generateWithRetry(params: {
   config?: any;
 }) {
   const models = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
+  const ai = getAiClient();
   let lastError: any = null;
 
   // Phase 1: Try with requested configuration (including googleSearch if configured)
@@ -1436,6 +1456,7 @@ Keep responses concise, scannable, and rapid.`;
     }
 
     // Call Flash-Lite model for fast lightweight conversational chat with minimal thinking
+    const ai = getAiClient();
     const responseStream = await ai.models.generateContentStream({
       model: FAST_CHAT_MODEL,
       contents,
@@ -1519,6 +1540,7 @@ Keep responses concise, scannable, and engaging.`;
       config.tools = [{ googleSearch: {} }];
     }
 
+    const ai = getAiClient();
     const response = await ai.models.generateContent({
       model: FAST_CHAT_MODEL,
       contents,
