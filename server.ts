@@ -30,6 +30,15 @@ app.use((req, res, next) => {
 
 // Normalize URLs if a serverless proxy or rewrite strips the '/api' prefix
 app.use((req, _res, next) => {
+  // Support Vercel catch-all slug parameter: api/[...slug].ts
+  if (req.query && req.query.slug) {
+    const slug = req.query.slug;
+    const slugPath = Array.isArray(slug) ? slug.join('/') : String(slug);
+    if (slugPath) {
+      req.url = '/api/' + slugPath;
+    }
+  }
+
   // Check if Vercel or a reverse proxy forwarded the real URI in headers
   const forwarded = (req.headers['x-forwarded-uri'] || req.headers['x-matched-path']) as string;
   if (forwarded && forwarded.includes('/api/')) {
