@@ -77,8 +77,9 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Dynamic API Key retrieval for serverless environments
-function getApiKey(): string {
+// Dynamic API Key retrieval for serverless and runtime environments
+function getApiKey(overrideKey?: string): string {
+  if (overrideKey && overrideKey.trim()) return overrideKey.trim();
   return (
     process.env.GEMINI_API_KEY ||
     process.env.GOOGLE_API_KEY ||
@@ -90,12 +91,16 @@ function getApiKey(): string {
 // Shared Gemini client factory to ensure fresh environment variable binding
 function getAiClient(): GoogleGenAI {
   const key = getApiKey();
+  const headers: Record<string, string> = {
+    'User-Agent': 'aistudio-build',
+  };
+  if (key) {
+    headers['x-goog-api-key'] = key;
+  }
   return new GoogleGenAI({
     apiKey: key || 'dummy-key-placeholder',
     httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      },
+      headers,
     },
   });
 }
@@ -119,7 +124,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const FLASH_MODEL = 'gemini-3.8-flash';
+const FLASH_MODEL = 'gemini-3.1-flash-lite';
 const FAST_CHAT_MODEL = 'gemini-3.1-flash-lite';
 
 // Live rolling window quota and prompt tracker
@@ -230,6 +235,9 @@ function extractRetryDelaySeconds(error: any): number | null {
 // User-friendly error message cleaner (avoid raw JSON dumps)
 function cleanErrorMessage(error: any): string {
   const raw = typeof error === 'string' ? error : (error?.message || '');
+  if (raw.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') || raw.includes('UNAUTHENTICATED') || raw.includes('401') || raw.includes('invalid authentication credentials')) {
+    return 'Google Gemini API key or session token is missing or expired. Please select a valid Gemini API key in your workspace settings.';
+  }
   if (raw.includes('RESOURCE_EXHAUSTED') || raw.includes('429') || raw.includes('quota')) {
     return 'Google Gemini Free-Tier request limit reached. Automatic rate-limit cooldown in progress.';
   }
@@ -239,23 +247,162 @@ function cleanErrorMessage(error: any): string {
   return error?.message || 'Processing failed. Please retry.';
 }
 
+// Normalizes varied contents formats (string, object with parts, array of parts, or standard content array) into valid Gemini REST API contents format
+function normalizeContents(contents: any): any[] {
+  if (!contents) return [{ role: 'user', parts: [{ text: '' }] }];
+  if (typeof contents === 'string') {
+    return [{ role: 'user', parts: [{ text: contents }] }];
+  }
+  if (Array.isArray(contents)) {
+    if (contents.length === 0) return [{ role: 'user', parts: [{ text: '' }] }];
+    // Check if it's already an array of Content objects (with .parts) or an array of Part objects
+    if (contents[0] && contents[0].parts) {
+      return contents.map(c => ({
+        role: c.role || 'user',
+        parts: c.parts,
+      }));
+    }
+    // If it's an array of part objects (e.g. [{ inlineData: ... }, { text: ... }])
+    return [{ role: 'user', parts: contents }];
+  }
+  if (typeof contents === 'object') {
+    if (contents.parts) {
+      return [{ role: contents.role || 'user', parts: contents.parts }];
+    }
+    if (contents.text) {
+      return [{ role: contents.role || 'user', parts: [{ text: contents.text }] }];
+    }
+    return [{ role: 'user', parts: [contents] }];
+  }
+  return [{ role: 'user', parts: [{ text: String(contents) }] }];
+}
+
+// Direct REST helper using X-goog-api-key header to prevent SDK Authorization Bearer injection issues
+async function callGeminiREST(model: string, contents: any, config?: any) {
+  const apiKey = getApiKey();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  const body: any = { contents: normalizeContents(contents) };
+  if (config) {
+    if (config.systemInstruction) {
+      body.systemInstruction = typeof config.systemInstruction === 'string'
+        ? { parts: [{ text: config.systemInstruction }] }
+        : config.systemInstruction;
+    }
+    const genConfig: any = {};
+    if (config.temperature !== undefined) genConfig.temperature = config.temperature;
+    if (config.maxOutputTokens !== undefined) genConfig.maxOutputTokens = config.maxOutputTokens;
+    if (config.thinkingConfig !== undefined) genConfig.thinkingConfig = config.thinkingConfig;
+    if (Object.keys(genConfig).length > 0) {
+      body.generationConfig = genConfig;
+    }
+    if (config.tools) {
+      body.tools = config.tools;
+    }
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-goog-api-key': apiKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error?.message || `Gemini API error status ${res.status}`);
+  }
+
+  const candidate = data.candidates?.[0];
+  const text = candidate?.content?.parts?.map((p: any) => p.text).join('') || '';
+  return {
+    text,
+    candidates: data.candidates,
+    usageMetadata: data.usageMetadata,
+  };
+}
+
+async function* callGeminiStreamREST(model: string, contents: any, config?: any) {
+  const apiKey = getApiKey();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
+  const body: any = { contents: normalizeContents(contents) };
+  if (config) {
+    if (config.systemInstruction) {
+      body.systemInstruction = typeof config.systemInstruction === 'string'
+        ? { parts: [{ text: config.systemInstruction }] }
+        : config.systemInstruction;
+    }
+    const genConfig: any = {};
+    if (config.temperature !== undefined) genConfig.temperature = config.temperature;
+    if (config.maxOutputTokens !== undefined) genConfig.maxOutputTokens = config.maxOutputTokens;
+    if (config.thinkingConfig !== undefined) genConfig.thinkingConfig = config.thinkingConfig;
+    if (Object.keys(genConfig).length > 0) {
+      body.generationConfig = genConfig;
+    }
+    if (config.tools) {
+      body.tools = config.tools;
+    }
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-goog-api-key': apiKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(errText || `Gemini API error status ${res.status}`);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error('Response body reader not available');
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('data:')) {
+        const jsonStr = trimmed.substring(5).trim();
+        if (jsonStr) {
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const text = parsed.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join('') || '';
+            const candidates = parsed.candidates;
+            yield { text, candidates };
+          } catch {
+            // ignore
+          }
+        }
+      }
+    }
+  }
+}
+
 // Robust helper with multi-model cascade and search-tool quota fallback
 async function generateWithRetry(params: {
   contents: any;
   config?: any;
 }) {
-  const models = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
-  const ai = getAiClient();
+  const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.1-flash-lite'];
   let lastError: any = null;
 
   // Phase 1: Try with requested configuration (including googleSearch if configured)
   for (const model of models) {
     try {
-      const response = await ai.models.generateContent({
-        model,
-        contents: params.contents,
-        config: params.config,
-      });
+      const response = await callGeminiREST(model, params.contents, params.config);
       return response;
     } catch (err: any) {
       lastError = err;
@@ -280,11 +427,7 @@ async function generateWithRetry(params: {
 
     for (const model of models) {
       try {
-        const response = await ai.models.generateContent({
-          model,
-          contents: params.contents,
-          config: fallbackConfig,
-        });
+        const response = await callGeminiREST(model, params.contents, fallbackConfig);
         return response;
       } catch (err: any) {
         lastError = err;
@@ -739,7 +882,7 @@ Return only JSON.`;
       parsed.tier = selectedTier;
     }
 
-    recordModelRequest('gemini-3.8-flash');
+    recordModelRequest('gemini-3.5-flash-lite');
 
     res.json({
       rating: parsed,
@@ -952,7 +1095,7 @@ Return only JSON.`;
           parsed.storyAndOutline = parsed.screenplayText;
         }
       }
-      recordModelRequest('gemini-3.8-flash');
+      recordModelRequest('gemini-3.5-flash-lite');
       return res.json({ result: parsed, mode: 'cowrite' });
     }
   } catch (error: any) {
@@ -1480,12 +1623,7 @@ Keep responses concise, scannable, and rapid.`;
     }
 
     // Call Flash-Lite model for fast lightweight conversational chat with minimal thinking
-    const ai = getAiClient();
-    const responseStream = await ai.models.generateContentStream({
-      model: FAST_CHAT_MODEL,
-      contents,
-      config,
-    });
+    const responseStream = callGeminiStreamREST(FAST_CHAT_MODEL, contents, config);
 
     let sources: any[] = [];
 
@@ -1564,12 +1702,7 @@ Keep responses concise, scannable, and engaging.`;
       config.tools = [{ googleSearch: {} }];
     }
 
-    const ai = getAiClient();
-    const response = await ai.models.generateContent({
-      model: FAST_CHAT_MODEL,
-      contents,
-      config,
-    });
+    const response = await callGeminiREST(FAST_CHAT_MODEL, contents, config);
 
     const replyText = response.text || '';
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
