@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { ShotRatingResult, CritiqueTier } from '../types';
 import { ResearchingIndicator, ErrorState } from './ResearchingIndicator';
+import { fetchWithAuth } from '../utils/api';
 
 // Helper to optimize and resize large images on client to prevent upload timeouts
 function optimizeImage(file: File, maxWidth = 1600, quality = 0.88): Promise<{ dataUrl: string; mimeType: string }> {
@@ -210,7 +211,7 @@ export const ShotRater: React.FC = () => {
     setRetryDelaySeconds(null);
 
     try {
-      const res = await fetch('/api/shot-rater', {
+      const res = await fetchWithAuth('/api/shot-rater', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

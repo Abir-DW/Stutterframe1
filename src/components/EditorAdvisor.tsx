@@ -25,6 +25,7 @@ import {
 import { EditorAdvisorResult, EditorRecommendation, GroundingSource } from '../types';
 import { ErrorState } from './ResearchingIndicator';
 import { EditorLogo } from './EditorLogo';
+import { fetchWithAuth } from '../utils/api';
 
 type DevicePlatformType = 'computer' | 'phone' | 'tablet';
 
@@ -627,7 +628,7 @@ export const EditorAdvisor: React.FC = () => {
     setResult(null);
 
     try {
-      const res = await fetch('/api/editor-advisor', {
+      const res = await fetchWithAuth('/api/editor-advisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

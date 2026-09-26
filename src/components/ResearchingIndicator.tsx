@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { RefreshCw, Search, AlertCircle, Film, Sparkles } from 'lucide-react';
+import { RefreshCw, Search, AlertCircle, Film, Sparkles, Key, ExternalLink, Check, Eye, EyeOff } from 'lucide-react';
+import { useSettings } from '../context/SettingsContext';
+import { getStoredApiKey, setStoredApiKey } from '../utils/api';
 
 interface ResearchingIndicatorProps {
   toolName: string;
@@ -77,10 +79,23 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   retryButtonText,
   retryDelaySeconds = null,
 }) => {
+  const { openSettings } = useSettings();
   const [secondsLeft, setSecondsLeft] = useState<number | null>(retryDelaySeconds);
   const onRetryRef = React.useRef(onRetry);
   onRetryRef.current = onRetry;
   const hasTriggeredRef = React.useRef(false);
+
+  // Inline Key State
+  const isAuthError =
+    message.toLowerCase().includes('api key') ||
+    message.toLowerCase().includes('session token') ||
+    message.toLowerCase().includes('unauthenticated') ||
+    message.toLowerCase().includes('401');
+
+  const [inlineKey, setInlineKey] = useState<string>(() => getStoredApiKey());
+  const [showInlineKey, setShowInlineKey] = useState<boolean>(false);
+  const [isSavingKey, setIsSavingKey] = useState<boolean>(false);
+  const [keySaveError, setKeySaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!retryDelaySeconds || retryDelaySeconds <= 0) {
@@ -120,20 +135,121 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
     onRetryRef.current();
   };
 
+  const handleConnectAndRetry = async () => {
+    if (!inlineKey.trim()) {
+      setKeySaveError('Please enter a valid Gemini API key.');
+      return;
+    }
+
+    setIsSavingKey(true);
+    setKeySaveError(null);
+    try {
+      const res = await fetch('/api/key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: inlineKey.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to verify key with Google.');
+      }
+      setStoredApiKey(inlineKey.trim());
+      // Successfully saved, trigger retry immediately!
+      handleManualRetry();
+    } catch (err: any) {
+      setKeySaveError(err.message || 'Key verification failed.');
+    } finally {
+      setIsSavingKey(false);
+    }
+  };
+
   return (
-    <div className="w-full max-w-xl mx-auto my-12 p-8 rounded-xl bg-zinc-950 border border-amber-500/40 text-center shadow-xl relative overflow-hidden backdrop-blur-sm">
+    <div className="w-full max-w-xl mx-auto my-12 p-6 sm:p-8 rounded-2xl bg-zinc-950 border border-amber-500/40 text-center shadow-2xl relative overflow-hidden backdrop-blur-sm">
       {/* Decorative top alert border */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-amber-500 to-red-500"></div>
 
       <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-950/40 border border-amber-500/40 text-amber-400 mb-4">
-        <AlertCircle className="w-7 h-7" />
+        {isAuthError ? <Key className="w-7 h-7" /> : <AlertCircle className="w-7 h-7" />}
       </div>
 
-      <h3 className="font-courier text-lg font-bold text-white mb-2">
+      <h3 className="font-courier text-lg sm:text-xl font-bold text-white mb-2">
         {title || (secondsLeft !== null && secondsLeft > 0 ? `${toolName} Query Delayed` : `${toolName} Notice`)}
       </h3>
 
-      <p className="text-sm text-zinc-400 mb-6 max-w-md mx-auto">{message}</p>
+      <p className="text-sm text-zinc-400 mb-6 max-w-md mx-auto leading-relaxed">{message}</p>
+
+      {/* Special Inline API Key Card for Auth Errors */}
+      {isAuthError && (
+        <div className="mb-6 p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 text-left space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Key className="w-3.5 h-3.5" />
+              Quick Connect Gemini API Key
+            </span>
+            <button
+              type="button"
+              onClick={() => openSettings('key')}
+              className="text-[11px] font-mono text-zinc-400 hover:text-amber-400 underline cursor-pointer"
+            >
+              Open Settings
+            </button>
+          </div>
+
+          <div className="relative flex items-center">
+            <input
+              type={showInlineKey ? 'text' : 'password'}
+              value={inlineKey}
+              onChange={(e) => setInlineKey(e.target.value)}
+              placeholder="Paste AIzaSy... key here"
+              className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowInlineKey(!showInlineKey)}
+              className="absolute right-2.5 text-zinc-400 hover:text-zinc-200 cursor-pointer p-1"
+            >
+              {showInlineKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+
+          {keySaveError && (
+            <p className="text-xs font-mono text-red-400 bg-red-950/40 p-2 rounded border border-red-500/20">
+              {keySaveError}
+            </p>
+          )}
+
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-mono text-amber-400 hover:text-amber-300 inline-flex items-center gap-1"
+            >
+              <span>Get Free Key from Google</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+
+            <button
+              type="button"
+              onClick={handleConnectAndRetry}
+              disabled={isSavingKey || !inlineKey.trim()}
+              className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-mono text-xs font-bold disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm active:scale-95"
+            >
+              {isSavingKey ? (
+                <>
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <span>Connecting...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Save &amp; Run Analysis</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Automatic countdown indicator if 429 rate limit delay is active */}
       {secondsLeft !== null && secondsLeft > 0 ? (
@@ -151,20 +267,22 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
         </div>
       ) : null}
 
-      <button
-        onClick={handleManualRetry}
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs tracking-wider uppercase font-mono transition-all shadow-lg shadow-amber-500/10 cursor-pointer"
-      >
-        <RefreshCw className="w-4 h-4" />
-        {secondsLeft !== null && secondsLeft > 0
-          ? 'Retry Immediately'
-          : retryButtonText ||
-            (toolName.toLowerCase().includes('search') ||
-            toolName.toLowerCase().includes('movie') ||
-            toolName.toLowerCase().includes('gear')
-              ? 'Retry Live Search'
-              : 'Retry Analysis')}
-      </button>
+      {!isAuthError && (
+        <button
+          onClick={handleManualRetry}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs tracking-wider uppercase font-mono transition-all shadow-lg shadow-amber-500/10 cursor-pointer active:scale-95"
+        >
+          <RefreshCw className="w-4 h-4" />
+          {secondsLeft !== null && secondsLeft > 0
+            ? 'Retry Immediately'
+            : retryButtonText ||
+              (toolName.toLowerCase().includes('search') ||
+              toolName.toLowerCase().includes('movie') ||
+              toolName.toLowerCase().includes('gear')
+                ? 'Retry Live Search'
+                : 'Retry Analysis')}
+        </button>
+      )}
     </div>
   );
 };

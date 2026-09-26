@@ -11,6 +11,7 @@ import {
   Film,
 } from 'lucide-react';
 import { ChatMessage, GroundingSource } from '../types';
+import { fetchWithAuth } from '../utils/api';
 
 interface AssistantDrawerProps {
   isOpen: boolean;
@@ -72,7 +73,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
 
     try {
       // Connect to fast Flash-Lite streaming endpoint
-      const res = await fetch('/api/assistant/stream', {
+      const res = await fetchWithAuth('/api/assistant/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

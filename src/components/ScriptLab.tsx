@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { ScriptCritiqueResult, ScriptCowriteResult, CritiqueTier } from '../types';
 import { ResearchingIndicator, ErrorState } from './ResearchingIndicator';
+import { fetchWithAuth } from '../utils/api';
 
 export const ScriptLab: React.FC = () => {
   const [mode, setMode] = useState<'critique' | 'cowrite'>('critique');
@@ -250,7 +251,7 @@ Maya smiles, but her eyes stay anchored to the table.`,
         payload.customCrewCount = customCrewCount;
       }
 
-      const res = await fetch('/api/script-lab', {
+      const res = await fetchWithAuth('/api/script-lab', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

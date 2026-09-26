@@ -77,9 +77,16 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Dynamic API Key retrieval for serverless and runtime environments
-function getApiKey(overrideKey?: string): string {
-  if (overrideKey && overrideKey.trim()) return overrideKey.trim();
+// Dynamic API Key retrieval for serverless, runtime, and client-supplied sessions
+let userSessionApiKey = '';
+
+function resolveApiKey(explicitKey?: string): string {
+  if (explicitKey && typeof explicitKey === 'string' && explicitKey.trim() && explicitKey.trim() !== 'undefined' && explicitKey.trim() !== 'null') {
+    return explicitKey.trim();
+  }
+  if (userSessionApiKey && userSessionApiKey.trim()) {
+    return userSessionApiKey.trim();
+  }
   return (
     process.env.GEMINI_API_KEY ||
     process.env.GOOGLE_API_KEY ||
@@ -88,9 +95,13 @@ function getApiKey(overrideKey?: string): string {
   );
 }
 
+function getApiKey(overrideKey?: string): string {
+  return resolveApiKey(overrideKey);
+}
+
 // Shared Gemini client factory to ensure fresh environment variable binding
-function getAiClient(): GoogleGenAI {
-  const key = getApiKey();
+function getAiClient(explicitKey?: string): GoogleGenAI {
+  const key = resolveApiKey(explicitKey);
   const headers: Record<string, string> = {
     'User-Agent': 'aistudio-build',
   };
@@ -105,23 +116,83 @@ function getAiClient(): GoogleGenAI {
   });
 }
 
+// Helper to extract API key from Express request
+function extractReqApiKey(req: Request): string {
+  const headerKey = req.headers['x-gemini-api-key'] as string;
+  if (headerKey && headerKey.trim() && headerKey !== 'undefined') return headerKey.trim();
+  const auth = req.headers['authorization'];
+  if (auth && auth.startsWith('Bearer ')) {
+    const token = auth.substring(7).trim();
+    if (token && token !== 'undefined') return token;
+  }
+  if (req.body && typeof req.body === 'object' && req.body.apiKey) {
+    return String(req.body.apiKey).trim();
+  }
+  return '';
+}
+
 // Guard API routes if GEMINI_API_KEY is not set (e.g. fresh Vercel deploy)
 app.use((req, res, next) => {
   const isApi = req.url.startsWith('/api') || req.path.startsWith('/api');
   if (!isApi) {
     return next();
   }
-  if (req.path.endsWith('/health') || req.path.endsWith('/quota')) {
+  if (req.path.endsWith('/health') || req.path.endsWith('/quota') || req.path.endsWith('/key') || req.path.endsWith('/key-status')) {
     return next();
   }
-  const key = getApiKey();
+  const key = resolveApiKey(extractReqApiKey(req));
   if (!key || key === 'dummy-key-placeholder') {
-    return res.status(500).json({
+    return res.status(401).json({
       error:
-        'GEMINI_API_KEY is not configured. Please add GEMINI_API_KEY in your Vercel Project Settings > Environment Variables, then redeploy.',
+        'Google Gemini API key or session token is missing or expired. Please configure a valid Gemini API key.',
     });
   }
   next();
+});
+
+// API Key status and verification endpoints
+app.get('/api/key-status', (req: Request, res: Response) => {
+  const reqKey = extractReqApiKey(req);
+  const activeKey = resolveApiKey(reqKey);
+  const isSet = Boolean(activeKey && activeKey.length > 5);
+  const isCustom = Boolean(userSessionApiKey || (reqKey && reqKey.length > 5));
+  res.json({
+    configured: isSet,
+    isCustom,
+    masked: isSet ? `${activeKey.slice(0, 6)}...${activeKey.slice(-4)}` : null,
+  });
+});
+
+app.post('/api/key', async (req: Request, res: Response) => {
+  try {
+    const { apiKey } = req.body || {};
+    if (!apiKey || !String(apiKey).trim()) {
+      userSessionApiKey = '';
+      return res.json({ success: true, message: 'Custom session key cleared.' });
+    }
+
+    const testKey = String(apiKey).trim();
+    // Test key with light ping
+    const testRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-goog-api-key': testKey,
+      },
+      body: JSON.stringify({ contents: [{ parts: [{ text: 'Ping' }] }] }),
+    });
+
+    if (!testRes.ok) {
+      const errData = await testRes.json().catch(() => ({}));
+      const msg = errData?.error?.message || `Google API returned status ${testRes.status}`;
+      return res.status(400).json({ error: `Key validation failed: ${msg}` });
+    }
+
+    userSessionApiKey = testKey;
+    res.json({ success: true, message: 'Google Gemini API key connected successfully!' });
+  } catch (err: any) {
+    res.status(400).json({ error: err?.message || 'Failed to validate API key with Google.' });
+  }
 });
 
 const FLASH_MODEL = 'gemini-3.1-flash-lite';
@@ -278,8 +349,11 @@ function normalizeContents(contents: any): any[] {
 }
 
 // Direct REST helper using X-goog-api-key header to prevent SDK Authorization Bearer injection issues
-async function callGeminiREST(model: string, contents: any, config?: any) {
-  const apiKey = getApiKey();
+async function callGeminiREST(model: string, contents: any, config?: any, apiKeyOverride?: string) {
+  const apiKey = resolveApiKey(apiKeyOverride);
+  if (!apiKey) {
+    throw new Error('Google Gemini API key or session token is missing or expired. Please enter a valid Gemini API key.');
+  }
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   const body: any = { contents: normalizeContents(contents) };
   if (config) {
@@ -323,8 +397,11 @@ async function callGeminiREST(model: string, contents: any, config?: any) {
   };
 }
 
-async function* callGeminiStreamREST(model: string, contents: any, config?: any) {
-  const apiKey = getApiKey();
+async function* callGeminiStreamREST(model: string, contents: any, config?: any, apiKeyOverride?: string) {
+  const apiKey = resolveApiKey(apiKeyOverride);
+  if (!apiKey) {
+    throw new Error('Google Gemini API key or session token is missing or expired. Please enter a valid Gemini API key.');
+  }
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
   const body: any = { contents: normalizeContents(contents) };
   if (config) {
@@ -395,6 +472,7 @@ async function* callGeminiStreamREST(model: string, contents: any, config?: any)
 async function generateWithRetry(params: {
   contents: any;
   config?: any;
+  apiKey?: string;
 }) {
   const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.1-flash-lite'];
   let lastError: any = null;
@@ -402,7 +480,7 @@ async function generateWithRetry(params: {
   // Phase 1: Try with requested configuration (including googleSearch if configured)
   for (const model of models) {
     try {
-      const response = await callGeminiREST(model, params.contents, params.config);
+      const response = await callGeminiREST(model, params.contents, params.config, params.apiKey);
       return response;
     } catch (err: any) {
       lastError = err;
@@ -427,7 +505,7 @@ async function generateWithRetry(params: {
 
     for (const model of models) {
       try {
-        const response = await callGeminiREST(model, params.contents, fallbackConfig);
+        const response = await callGeminiREST(model, params.contents, fallbackConfig, params.apiKey);
         return response;
       } catch (err: any) {
         lastError = err;
@@ -436,7 +514,7 @@ async function generateWithRetry(params: {
     }
   }
 
-  throw lastError;
+  throw lastError || new Error('All model configurations failed to respond. Please retry.');
 }
 
 // Resilient multi-tier movie poster resolution via Wikipedia REST & OpenSearch
@@ -634,6 +712,7 @@ Output only the JSON code block.`;
       config: {
         tools: [{ googleSearch: {} }],
       },
+      apiKey: extractReqApiKey(req),
     });
 
     const text = response.text || '';
@@ -873,6 +952,7 @@ Return only JSON.`;
       contents: {
         parts: [imagePart, textPart],
       },
+      apiKey: extractReqApiKey(req),
     });
 
     const text = response.text || '';
@@ -1014,6 +1094,7 @@ Return only JSON.`;
 
       const response = await generateWithRetry({
         contents: prompt,
+        apiKey: extractReqApiKey(req),
       });
 
       const parsed = extractJsonFromText(response.text || '');
@@ -1084,6 +1165,7 @@ Return only JSON.`;
 
       const response = await generateWithRetry({
         contents: prompt,
+        apiKey: extractReqApiKey(req),
       });
 
       const parsed = extractJsonFromText(response.text || '');
@@ -1173,6 +1255,7 @@ Return only JSON.`;
       config: {
         tools: [{ googleSearch: {} }],
       },
+      apiKey: extractReqApiKey(req),
     });
 
     const text = response.text || '';
@@ -1506,6 +1589,7 @@ Return only JSON.`;
       config: {
         tools: [{ googleSearch: {} }],
       },
+      apiKey: extractReqApiKey(req),
     });
 
     const parsed = extractJsonFromText(response.text || '');
@@ -1623,7 +1707,7 @@ Keep responses concise, scannable, and rapid.`;
     }
 
     // Call Flash-Lite model for fast lightweight conversational chat with minimal thinking
-    const responseStream = callGeminiStreamREST(FAST_CHAT_MODEL, contents, config);
+    const responseStream = callGeminiStreamREST(FAST_CHAT_MODEL, contents, config, extractReqApiKey(req));
 
     let sources: any[] = [];
 
@@ -1702,7 +1786,7 @@ Keep responses concise, scannable, and engaging.`;
       config.tools = [{ googleSearch: {} }];
     }
 
-    const response = await callGeminiREST(FAST_CHAT_MODEL, contents, config);
+    const response = await callGeminiREST(FAST_CHAT_MODEL, contents, config, extractReqApiKey(req));
 
     const replyText = response.text || '';
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { GearRecommendationResult, GroundingSource } from '../types';
 import { ErrorState } from './ResearchingIndicator';
+import { fetchWithAuth } from '../utils/api';
 
 // Rotating status line loader as requested
 const GearSearchLoading: React.FC = () => {
@@ -115,7 +116,7 @@ export const GearSuggestor: React.FC = () => {
     setResult(null);
 
     try {
-      const res = await fetch('/api/gear-suggestor', {
+      const res = await fetchWithAuth('/api/gear-suggestor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

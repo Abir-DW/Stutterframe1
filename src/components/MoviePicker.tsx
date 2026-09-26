@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { MovieRecommendation, GroundingSource, WatchOption } from '../types';
 import { ResearchingIndicator, ErrorState } from './ResearchingIndicator';
+import { fetchWithAuth } from '../utils/api';
 
 export const MoviePicker: React.FC = () => {
   const [selectedGenrePreset, setSelectedGenrePreset] = useState('Psychological Thriller');
@@ -126,7 +127,7 @@ export const MoviePicker: React.FC = () => {
     try {
       const excludes = excludeCurrent && movie ? [...previousTitles, movie.title] : previousTitles;
 
-      const res = await fetch('/api/movie-picker', {
+      const res = await fetchWithAuth('/api/movie-picker', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

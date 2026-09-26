@@ -35,8 +35,8 @@ export interface SettingsContextType {
   theme: ColorTheme;
   customPalette: CustomThemePalette;
   isSettingsOpen: boolean;
-  settingsTab: 'cursor' | 'theme' | 'credits';
-  openSettings: (tab?: 'cursor' | 'theme' | 'credits') => void;
+  settingsTab: 'cursor' | 'theme' | 'credits' | 'key';
+  openSettings: (tab?: 'cursor' | 'theme' | 'credits' | 'key') => void;
   closeSettings: () => void;
   setCursorType: (type: CursorType) => void;
   setCursorColor: (color: string, forType?: CursorType) => void;
@@ -144,7 +144,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'cursor' | 'theme' | 'credits'>('cursor');
+  const [settingsTab, setSettingsTab] = useState<'cursor' | 'theme' | 'credits' | 'key'>('cursor');
   const [pageChangeEventId, setPageChangeEventId] = useState(0);
   const [lastClickPos, setLastClickPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -264,7 +264,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const openSettings = useCallback((tab: 'cursor' | 'theme' | 'credits' = 'cursor') => {
+  const openSettings = useCallback((tab: 'cursor' | 'theme' | 'credits' | 'key' = 'cursor') => {
     setSettingsTab(tab);
     setIsSettingsOpen(true);
   }, []);

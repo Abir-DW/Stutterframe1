@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   X,
@@ -17,8 +17,14 @@ import {
   Zap,
   Sliders,
   Smartphone,
+  Key,
+  ShieldCheck,
+  AlertCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { useSettings, CursorType, ColorTheme } from '../context/SettingsContext';
+import { getStoredApiKey, setStoredApiKey } from '../utils/api';
 
 const PRESET_CURSOR_COLORS = [
   { name: 'Amber Gold', hex: '#f59e0b' },
@@ -126,9 +132,70 @@ export const SettingsModal: React.FC = () => {
     triggerPageChangeEffect,
   } = useSettings();
 
-  const [activeTab, setActiveTab] = useState<'cursor' | 'theme' | 'credits'>(settingsTab);
+  const [activeTab, setActiveTab] = useState<'cursor' | 'theme' | 'credits' | 'key'>(settingsTab);
   const [editingColorFor, setEditingColorFor] = useState<CursorType>(cursorType);
   const [testClapCount, setTestClapCount] = useState(0);
+
+  // API Key State
+  const [apiKeyInput, setApiKeyInput] = useState<string>(() => getStoredApiKey());
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
+  const [keyStatus, setKeyStatus] = useState<{ configured: boolean; isCustom: boolean; masked: string | null } | null>(null);
+  const [testingKey, setTestingKey] = useState<boolean>(false);
+  const [keyFeedback, setKeyFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Fetch key status when modal opens or key tab is active
+  useEffect(() => {
+    if (isSettingsOpen) {
+      fetch('/api/key-status')
+        .then((r) => r.json())
+        .then((data) => setKeyStatus(data))
+        .catch(() => {});
+    }
+  }, [isSettingsOpen, activeTab]);
+
+  const handleSaveAndVerifyKey = async () => {
+    setTestingKey(true);
+    setKeyFeedback(null);
+    try {
+      const res = await fetch('/api/key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: apiKeyInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to verify key with Google.');
+      }
+      setStoredApiKey(apiKeyInput);
+      setKeyFeedback({ type: 'success', message: data.message || 'Key connected and active!' });
+      // Refresh status
+      const statusRes = await fetch('/api/key-status');
+      const statusData = await statusRes.json();
+      setKeyStatus(statusData);
+    } catch (err: any) {
+      setKeyFeedback({ type: 'error', message: err.message || 'Key verification failed.' });
+    } finally {
+      setTestingKey(false);
+    }
+  };
+
+  const handleClearKey = async () => {
+    setApiKeyInput('');
+    setStoredApiKey('');
+    try {
+      await fetch('/api/key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: '' }),
+      });
+      const statusRes = await fetch('/api/key-status');
+      const statusData = await statusRes.json();
+      setKeyStatus(statusData);
+      setKeyFeedback({ type: 'success', message: 'Custom key cleared.' });
+    } catch (err: any) {
+      setKeyFeedback({ type: 'error', message: err.message || 'Failed to clear key.' });
+    }
+  };
 
   // Sync activeTab when modal opens with specific tab
   React.useEffect(() => {
@@ -236,6 +303,21 @@ export const SettingsModal: React.FC = () => {
           >
             <Award className="w-3.5 h-3.5" />
             <span>Credits &amp; Director</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('key')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+              activeTab === 'key'
+                ? 'bg-amber-500 text-black font-bold shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+            }`}
+          >
+            <Key className="w-3.5 h-3.5" />
+            <span>Gemini API Key</span>
+            {keyStatus?.configured && (
+              <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block ml-0.5 animate-pulse" />
+            )}
           </button>
         </div>
 
@@ -863,6 +945,167 @@ export const SettingsModal: React.FC = () => {
                   <RotateCcw className="w-3 h-3" />
                   <span>Reset All to Defaults</span>
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: GEMINI API KEY & ENGINE CONFIGURATION */}
+          {activeTab === 'key' && (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Header Status Card */}
+              <div className="p-4 rounded-xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 border border-zinc-800/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Key className="w-4 h-4 text-amber-400" />
+                    <span className="font-courier text-xs font-bold text-white uppercase tracking-wider">
+                      Google Gemini AI Authentication
+                    </span>
+                  </div>
+                  {keyStatus?.configured ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-400 text-[11px] font-mono font-medium">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{keyStatus.isCustom ? 'Custom Key Active' : 'Workspace Connected'}</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/30 text-amber-400 text-[11px] font-mono font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Key Configuration Needed</span>
+                    </span>
+                  )}
+                </div>
+
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  StutterFrame uses the Google Gemini Multimodal Vision &amp; Flash reasoning API to evaluate cinematography shots, co-write event-driven scripts, recommend film gear in INR, and research movies with Google Search grounding.
+                </p>
+
+                {keyStatus?.masked && (
+                  <div className="text-[11px] font-mono text-zinc-400 bg-black/40 px-3 py-1.5 rounded-lg border border-zinc-800 flex items-center justify-between">
+                    <span>Active Key: <code className="text-amber-400 font-bold">{keyStatus.masked}</code></span>
+                    <span className="text-[10px] text-zinc-500">Google Gemini API</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Input Form */}
+              <div className="space-y-3 p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
+                <label className="text-xs font-mono text-zinc-300 uppercase tracking-wider block font-semibold">
+                  Enter Your Gemini API Key
+                </label>
+
+                <div className="relative flex items-center">
+                  <input
+                    type={showApiKey ? 'text' : 'password'}
+                    value={apiKeyInput}
+                    onChange={(e) => setApiKeyInput(e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="w-full bg-zinc-950 border border-zinc-700/80 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors pr-24"
+                  />
+                  <div className="absolute right-2.5 flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowApiKey(!showApiKey)}
+                      className="p-1.5 text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+                      title={showApiKey ? 'Hide Key' : 'Show Key'}
+                    >
+                      {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {keyFeedback && (
+                  <div
+                    className={`p-2.5 rounded-lg text-xs font-mono flex items-start gap-2 ${
+                      keyFeedback.type === 'success'
+                        ? 'bg-emerald-950/60 border border-emerald-500/30 text-emerald-300'
+                        : 'bg-red-950/60 border border-red-500/30 text-red-300'
+                    }`}
+                  >
+                    {keyFeedback.type === 'success' ? (
+                      <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                    )}
+                    <span>{keyFeedback.message}</span>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleSaveAndVerifyKey}
+                    disabled={testingKey || !apiKeyInput.trim()}
+                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-mono text-xs font-bold transition-all cursor-pointer disabled:cursor-not-allowed flex items-center gap-2 active:scale-95 shadow-sm"
+                  >
+                    {testingKey ? (
+                      <>
+                        <span className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                        <span>Verifying with Google...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Save &amp; Test Connection</span>
+                      </>
+                    )}
+                  </button>
+
+                  {apiKeyInput && (
+                    <button
+                      type="button"
+                      onClick={handleClearKey}
+                      className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white font-mono text-xs transition-colors cursor-pointer"
+                    >
+                      Clear Key
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* How to get a free API Key */}
+              <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <h5 className="font-courier text-xs font-bold text-amber-400 uppercase tracking-wider">
+                    How to get a 100% Free Gemini API Key (Takes 10 Seconds)
+                  </h5>
+                </div>
+
+                <ol className="text-xs font-mono text-zinc-300 space-y-2 list-decimal list-inside leading-relaxed">
+                  <li>
+                    Open{' '}
+                    <a
+                      href="https://aistudio.google.com/app/apikey"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-amber-400 underline hover:text-amber-300 inline-flex items-center gap-1 font-bold"
+                    >
+                      Google AI Studio (aistudio.google.com/app/apikey)
+                      <ExternalLink className="w-3 h-3 inline" />
+                    </a>
+                  </li>
+                  <li>Click <strong className="text-white">&quot;Create API Key&quot;</strong> and choose or create a project.</li>
+                  <li>Copy your key (starts with <code className="text-amber-400 font-bold">AIzaSy...</code>) and paste it into the box above.</li>
+                </ol>
+
+                <div className="pt-1">
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-amber-500/30 text-xs font-mono font-medium transition-colors"
+                  >
+                    <span>Get Free Gemini API Key from Google</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Privacy Reassurance */}
+              <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-[11px] font-mono text-zinc-400 flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-zinc-500 flex-shrink-0 mt-0.5" />
+                <p>
+                  <strong className="text-zinc-300">Privacy &amp; Local Storage:</strong> Your custom Gemini API key is stored securely in your browser&apos;s LocalStorage. It is never committed to GitHub or shared publicly.
+                </p>
               </div>
             </div>
           )}
