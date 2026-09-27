@@ -491,7 +491,7 @@ Maya smiles, but her eyes stay anchored to the table.`,
                         setBudget(val);
                       }
                     }}
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-xs font-mono text-white outline-none cursor-pointer"
+                    className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-sm sm:text-xs font-mono text-white outline-none cursor-pointer touch-manipulation min-h-[42px]"
                   >
                     {budgetOptions.map((b) => (
                       <option key={b} value={b}>
@@ -506,7 +506,7 @@ Maya smiles, but her eyes stay anchored to the table.`,
                       value={customBudget}
                       onChange={(e) => setCustomBudget(e.target.value)}
                       placeholder="e.g. ₹50,000, ₹5 Lakhs, ₹1.5 Crore..."
-                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-amber-400/60 focus:border-amber-400 text-xs font-mono text-amber-300 outline-none"
+                      className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-amber-400/60 focus:border-amber-400 text-sm sm:text-xs font-mono text-amber-300 outline-none touch-manipulation min-h-[42px]"
                       autoFocus
                     />
                   </div>
@@ -525,7 +525,7 @@ Maya smiles, but her eyes stay anchored to the table.`,
                 <select
                   value={experienceLevel}
                   onChange={(e) => setExperienceLevel(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-xs font-mono text-white outline-none cursor-pointer"
+                  className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-sm sm:text-xs font-mono text-white outline-none cursor-pointer touch-manipulation min-h-[42px]"
                 >
                   {levelOptions.map((lvl) => (
                     <option key={lvl} value={lvl}>
@@ -559,10 +559,10 @@ Maya smiles, but her eyes stay anchored to the table.`,
                       setCustomCrewCount(next);
                       setIsCustomCrew(true);
                     }}
-                    className="w-8 h-8 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors"
+                    className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors touch-manipulation active:scale-95"
                     title="Decrease crew size"
                   >
-                    <Minus className="w-3.5 h-3.5" />
+                    <Minus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                   </button>
 
                   <div className="relative flex-1">
@@ -575,9 +575,9 @@ Maya smiles, but her eyes stay anchored to the table.`,
                         setCustomCrewCount(Math.max(1, parseInt(e.target.value) || 1));
                         setIsCustomCrew(true);
                       }}
-                      className="w-full text-center px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-xs font-mono font-bold text-white outline-none"
+                      className="w-full text-center px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-sm sm:text-xs font-mono font-bold text-white outline-none touch-manipulation min-h-[40px]"
                     />
-                    <span className="absolute right-2 top-2 text-[10px] font-mono text-zinc-500 pointer-events-none">
+                    <span className="absolute right-2 top-2.5 text-[10px] font-mono text-zinc-500 pointer-events-none">
                       people
                     </span>
                   </div>
@@ -589,10 +589,10 @@ Maya smiles, but her eyes stay anchored to the table.`,
                       setCustomCrewCount(next);
                       setIsCustomCrew(true);
                     }}
-                    className="w-8 h-8 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors"
+                    className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors touch-manipulation active:scale-95"
                     title="Increase crew size"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                   </button>
                 </div>
 
@@ -659,7 +659,7 @@ Maya smiles, but her eyes stay anchored to the table.`,
           </div>
 
           <textarea
-            rows={10}
+            rows={8}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={
@@ -667,7 +667,7 @@ Maya smiles, but her eyes stay anchored to the table.`,
                 ? 'INT. COFFEE SHOP - DAY\n\nJOHN (30s) sits with cold tea...'
                 : 'Describe your characters, their urgent goals, and the starting situation. The Co-Writer will craft a propulsive, event-driven story detailing exactly what happens to whom, advancing incidents, and a structured narrative beat outline tailored to your budget (in ₹)...'
             }
-            className="w-full p-4 rounded-xl bg-[#0d0d10] border border-zinc-800 focus:border-amber-400 text-zinc-200 font-courier text-xs sm:text-sm leading-relaxed outline-none shadow-inner resize-y"
+            className="w-full p-3.5 sm:p-4 rounded-xl bg-[#0d0d10] border border-zinc-800 focus:border-amber-400 text-zinc-200 font-courier text-sm sm:text-xs leading-relaxed outline-none shadow-inner resize-y touch-manipulation min-h-[160px]"
           />
         </div>
 
@@ -675,7 +675,7 @@ Maya smiles, but her eyes stay anchored to the table.`,
         <button
           onClick={handleExecute}
           disabled={loading}
-          className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold font-mono tracking-wider text-xs uppercase flex items-center justify-center gap-2 shadow-lg shadow-amber-500/15 cursor-pointer disabled:opacity-50 transition-all"
+          className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold font-mono tracking-wider text-xs uppercase flex items-center justify-center gap-2 shadow-lg shadow-amber-500/15 cursor-pointer disabled:opacity-50 transition-all touch-manipulation active:scale-[0.99] min-h-[46px]"
         >
           <Sparkles className="w-4 h-4 text-black" />
           {loading
@@ -919,9 +919,15 @@ Maya smiles, but her eyes stay anchored to the table.`,
           </div>
 
           {/* Formatted Story & Beat Outlines Display */}
-          <div className="rounded-2xl bg-[#0c0c0f] border-2 border-zinc-800 p-6 sm:p-10 shadow-2xl overflow-x-auto relative">
-            <div className="absolute top-4 right-4 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-              Event-Driven Story &amp; Beat Outline
+          <div className="rounded-2xl bg-[#0c0c0f] border-2 border-zinc-800 p-4 sm:p-8 shadow-2xl overflow-x-auto">
+            <div className="flex items-center justify-between pb-3 mb-4 sm:mb-6 border-b border-zinc-800/80">
+              <span className="text-[11px] sm:text-xs font-mono text-amber-400 uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                Event-Driven Story &amp; Beat Outline
+              </span>
+              <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                Production Script
+              </span>
             </div>
 
             <pre className="font-sans text-xs sm:text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed max-w-3xl mx-auto selection:bg-amber-500/30">

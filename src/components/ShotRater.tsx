@@ -471,11 +471,11 @@ export const ShotRater: React.FC = () => {
                   value={filmmakerNote}
                   onChange={(e) => setFilmmakerNote(e.target.value)}
                   placeholder="Optional context: e.g. Anamorphic 50mm, night exterior, natural practical lighting..."
-                  className="flex-1 px-3.5 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-xs font-mono text-white outline-none"
+                  className="flex-1 px-3.5 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-sm sm:text-xs font-mono text-white outline-none touch-manipulation min-h-[44px]"
                 />
                 <button
                   onClick={handleSubmitAnalysis}
-                  className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold font-mono tracking-wider text-xs uppercase flex items-center justify-center gap-2 shadow-lg shadow-amber-500/15 cursor-pointer transition-all"
+                  className="px-5 py-3 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold font-mono tracking-wider text-xs uppercase flex items-center justify-center gap-2 shadow-lg shadow-amber-500/15 cursor-pointer transition-all touch-manipulation active:scale-[0.99] min-h-[44px]"
                 >
                   <Sparkles className="w-4 h-4 text-black" />
                   {result ? 'Re-Analyze Frame' : 'Critique Shot Cinematography'}

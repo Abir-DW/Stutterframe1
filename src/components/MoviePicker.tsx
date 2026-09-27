@@ -249,7 +249,7 @@ export const MoviePicker: React.FC = () => {
                   value={customGenre}
                   onChange={(e) => setCustomGenre(e.target.value)}
                   placeholder="Type your niche genre (e.g. Acid Western, Cyber-Thriller)..."
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-950 border border-amber-500/60 focus:border-amber-400 text-amber-300 text-xs font-mono outline-none"
+                  className="w-full px-3 py-2.5 rounded-lg bg-zinc-950 border border-amber-500/60 focus:border-amber-400 text-amber-300 text-sm sm:text-xs font-mono outline-none touch-manipulation min-h-[42px]"
                   autoFocus
                 />
               </div>
@@ -264,7 +264,7 @@ export const MoviePicker: React.FC = () => {
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-white text-xs font-mono outline-none cursor-pointer"
+              className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-white text-sm sm:text-xs font-mono outline-none cursor-pointer touch-manipulation min-h-[42px]"
             >
               {languagePresets.map((l) => (
                 <option key={l} value={l}>
@@ -282,7 +282,7 @@ export const MoviePicker: React.FC = () => {
             <select
               value={era}
               onChange={(e) => setEra(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-white text-xs font-mono outline-none cursor-pointer"
+              className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-white text-sm sm:text-xs font-mono outline-none cursor-pointer touch-manipulation min-h-[42px]"
             >
               {eraPresets.map((er) => (
                 <option key={er} value={er}>
@@ -300,7 +300,7 @@ export const MoviePicker: React.FC = () => {
             <select
               value={mood}
               onChange={(e) => setMood(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-white text-xs font-mono outline-none cursor-pointer"
+              className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 focus:border-amber-400 text-white text-sm sm:text-xs font-mono outline-none cursor-pointer touch-manipulation min-h-[42px]"
             >
               {moodPresets.map((m) => (
                 <option key={m} value={m}>

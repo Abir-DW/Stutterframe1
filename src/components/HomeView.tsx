@@ -18,6 +18,9 @@ interface HomeViewProps {
   navigate: (route: string) => void;
 }
 
+// Subtle VHS celluloid background effect (rollback safeguard: set to false to instantly disable)
+const ENABLE_VHS_BACKDROP = true;
+
 export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
   const { triggerPageChangeEffect } = useSettings();
   const tools = [
@@ -84,7 +87,25 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
   ];
 
   return (
-    <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-12">
+    <>
+      {/* Subtle VHS vintage background stripes & analog noise (rollback safeguard: set ENABLE_VHS_BACKDROP = false) */}
+      {ENABLE_VHS_BACKDROP && (
+        <div
+          className="pointer-events-none fixed inset-0 z-20 overflow-hidden select-none"
+          aria-hidden="true"
+        >
+          {/* 1. Visible horizontal CRT / VHS scanlines */}
+          <div className="vhs-scanlines absolute inset-0 opacity-30 mix-blend-overlay" />
+
+          {/* 2. Slow rolling tape tracking artifact band */}
+          <div className="vhs-tracking-band absolute left-0 right-0 h-28" />
+
+          {/* 3. Micro tape noise & horizontal static fringe */}
+          <div className="vhs-static-noise vhs-flicker absolute inset-0 opacity-20 mix-blend-screen" />
+        </div>
+      )}
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-12">
       {/* Hero Section with Stuttering Typewriter */}
       <section className="pt-4 sm:pt-8 pb-4">
         <TypewriterHero
@@ -164,6 +185,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
           })}
         </div>
       </section>
-    </div>
+      </div>
+    </>
   );
 };
