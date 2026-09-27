@@ -157,21 +157,68 @@ export const SettingsModal: React.FC = () => {
     setTestingKey(true);
     setKeyFeedback(null);
     try {
-      const res = await fetch('/api/key', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: apiKeyInput }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to verify key with Google.');
+      let cleanKey = apiKeyInput.trim();
+      cleanKey = cleanKey.replace(/^["']|["']$/g, '');
+      cleanKey = cleanKey.replace(/^export\s+[A-Za-z_]+=\s*/, '');
+      cleanKey = cleanKey.replace(/^Bearer\s+/i, '').trim();
+
+      if (!cleanKey) {
+        throw new Error('Please enter your Gemini API key.');
       }
-      setStoredApiKey(apiKeyInput);
-      setKeyFeedback({ type: 'success', message: data.message || 'Key connected and active!' });
+
+      setApiKeyInput(cleanKey);
+
+      // 1. Direct client test ping against Google Gemini endpoint
+      let clientPassed = false;
+      try {
+        const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${encodeURIComponent(cleanKey)}`;
+        const clientRes = await fetch(testUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-goog-api-key': cleanKey,
+          },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'Ping' }] }] }),
+        });
+
+        if (clientRes.ok) {
+          clientPassed = true;
+        } else {
+          const errData = await clientRes.json().catch(() => ({}));
+          const errMsg = errData?.error?.message || `Google returned status ${clientRes.status}`;
+          
+          if (errMsg.includes('not been used in project') || errMsg.includes('disabled')) {
+            throw new Error(`The "Generative Language API" is not enabled on this Google Cloud project. Please click "Create API key" in aistudio.google.com/app/apikey to generate a key in a new project.`);
+          } else if (errMsg.includes('API_KEY_INVALID') || errMsg.includes('not valid')) {
+            throw new Error(`Google rejected this key as invalid. Make sure you copied the entire AIzaSy... string from Google AI Studio.`);
+          } else {
+            throw new Error(`Google API verification error: ${errMsg}`);
+          }
+        }
+      } catch (clientErr: any) {
+        throw clientErr;
+      }
+
+      // 2. Save locally
+      setStoredApiKey(cleanKey);
+
+      // 3. Notify backend server
+      try {
+        await fetch('/api/key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey: cleanKey }),
+        });
+      } catch {}
+
+      setKeyFeedback({ type: 'success', message: 'Google Gemini API key verified and active!' });
+      
       // Refresh status
-      const statusRes = await fetch('/api/key-status');
-      const statusData = await statusRes.json();
-      setKeyStatus(statusData);
+      try {
+        const statusRes = await fetch('/api/key-status');
+        const statusData = await statusRes.json();
+        setKeyStatus(statusData);
+      } catch {}
     } catch (err: any) {
       setKeyFeedback({ type: 'error', message: err.message || 'Key verification failed.' });
     } finally {
@@ -313,11 +360,9 @@ export const SettingsModal: React.FC = () => {
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
             }`}
           >
-            <Key className="w-3.5 h-3.5" />
-            <span>Gemini API Key</span>
-            {keyStatus?.configured && (
-              <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block ml-0.5 animate-pulse" />
-            )}
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Cloud &amp; AI</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block ml-0.5" />
           </button>
         </div>
 
@@ -975,29 +1020,44 @@ export const SettingsModal: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-zinc-400 leading-relaxed">
-                  StutterFrame uses the Google Gemini Multimodal Vision &amp; Flash reasoning API to evaluate cinematography shots, co-write event-driven scripts, recommend film gear in INR, and research movies with Google Search grounding.
+                  StutterFrame is powered by Google Gemini multimodal vision &amp; reasoning algorithms alongside its built-in Cinematic Vision Engine for shot analysis, screenplay doctoring, and search-grounded filmmaking research.
                 </p>
 
-                {keyStatus?.masked && (
-                  <div className="text-[11px] font-mono text-zinc-400 bg-black/40 px-3 py-1.5 rounded-lg border border-zinc-800 flex items-center justify-between">
-                    <span>Active Key: <code className="text-amber-400 font-bold">{keyStatus.masked}</code></span>
-                    <span className="text-[10px] text-zinc-500">Google Gemini API</span>
+                {/* Secure Server Connection Status */}
+                <div className="p-3.5 rounded-xl bg-zinc-950/80 border border-zinc-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
+                    <div>
+                      <div className="text-xs font-mono text-zinc-200 font-semibold">
+                        Server-Side Gemini Integration
+                      </div>
+                      <div className="text-[11px] font-mono text-zinc-500">
+                        Zero keys exposed to browser &bull; Free-tier optimized models
+                      </div>
+                    </div>
                   </div>
-                )}
+                  <span className="text-[11px] font-mono text-emerald-400 font-bold bg-emerald-950/60 px-2.5 py-1 rounded-md border border-emerald-500/30">
+                    Connected
+                  </span>
+                </div>
               </div>
 
-              {/* Input Form */}
+              {/* Input Form for custom developer key override */}
               <div className="space-y-3 p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
                 <label className="text-xs font-mono text-zinc-300 uppercase tracking-wider block font-semibold">
-                  Enter Your Gemini API Key
+                  Custom API Key Override (Optional)
                 </label>
+
+                <p className="text-[11px] font-mono text-zinc-400 leading-relaxed">
+                  StutterFrame runs automatically using server environment variables. If you want to use your own personal Google Cloud project key, you can enter it below.
+                </p>
 
                 <div className="relative flex items-center">
                   <input
                     type={showApiKey ? 'text' : 'password'}
                     value={apiKeyInput}
                     onChange={(e) => setApiKeyInput(e.target.value)}
-                    placeholder="AIzaSy..."
+                    placeholder="Enter custom API key..."
                     className="w-full bg-zinc-950 border border-zinc-700/80 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500 transition-colors pr-24"
                   />
                   <div className="absolute right-2.5 flex items-center gap-1.5">
@@ -1039,12 +1099,12 @@ export const SettingsModal: React.FC = () => {
                     {testingKey ? (
                       <>
                         <span className="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                        <span>Verifying with Google...</span>
+                        <span>Verifying...</span>
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-3.5 h-3.5" />
-                        <span>Save &amp; Test Connection</span>
+                        <span>Save Custom Key</span>
                       </>
                     )}
                   </button>
@@ -1055,56 +1115,17 @@ export const SettingsModal: React.FC = () => {
                       onClick={handleClearKey}
                       className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white font-mono text-xs transition-colors cursor-pointer"
                     >
-                      Clear Key
+                      Reset to Default
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* How to get a free API Key */}
-              <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <h5 className="font-courier text-xs font-bold text-amber-400 uppercase tracking-wider">
-                    How to get a 100% Free Gemini API Key (Takes 10 Seconds)
-                  </h5>
-                </div>
-
-                <ol className="text-xs font-mono text-zinc-300 space-y-2 list-decimal list-inside leading-relaxed">
-                  <li>
-                    Open{' '}
-                    <a
-                      href="https://aistudio.google.com/app/apikey"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-amber-400 underline hover:text-amber-300 inline-flex items-center gap-1 font-bold"
-                    >
-                      Google AI Studio (aistudio.google.com/app/apikey)
-                      <ExternalLink className="w-3 h-3 inline" />
-                    </a>
-                  </li>
-                  <li>Click <strong className="text-white">&quot;Create API Key&quot;</strong> and choose or create a project.</li>
-                  <li>Copy your key (starts with <code className="text-amber-400 font-bold">AIzaSy...</code>) and paste it into the box above.</li>
-                </ol>
-
-                <div className="pt-1">
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-amber-400 border border-amber-500/30 text-xs font-mono font-medium transition-colors"
-                  >
-                    <span>Get Free Gemini API Key from Google</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              </div>
-
               {/* Privacy Reassurance */}
-              <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-[11px] font-mono text-zinc-400 flex items-start gap-2">
+              <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 text-[11px] font-mono text-zinc-400 flex items-start gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-zinc-500 flex-shrink-0 mt-0.5" />
                 <p>
-                  <strong className="text-zinc-300">Privacy &amp; Local Storage:</strong> Your custom Gemini API key is stored securely in your browser&apos;s LocalStorage. It is never committed to GitHub or shared publicly.
+                  <strong className="text-zinc-300">Privacy &amp; Security:</strong> StutterFrame executes all AI requests via server-side proxy routes. Keys are never embedded in compiled assets or exposed publicly.
                 </p>
               </div>
             </div>

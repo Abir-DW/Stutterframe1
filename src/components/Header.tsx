@@ -1,7 +1,6 @@
 import React from 'react';
 import { Film, Clapperboard, Camera, FileText, ShoppingBag, Scissors, MessageSquare, Info, Settings, HelpCircle } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
-import { QuotaIndicator } from './QuotaIndicator';
 import { useSettings } from '../context/SettingsContext';
 
 interface HeaderProps {
@@ -75,11 +74,8 @@ export const Header: React.FC<HeaderProps> = ({
           })}
         </nav>
 
-        {/* Right Action: Prompt Quota, Theme Switcher, Settings, About & Assistant */}
+        {/* Right Action: Theme Switcher, Settings, About & Assistant */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-          {/* Live Prompt Quota & Refresh Indicator */}
-          <QuotaIndicator />
-
           {/* Theme Palette Switcher */}
           <ThemeSwitcher />
 

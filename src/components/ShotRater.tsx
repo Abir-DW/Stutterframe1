@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import { ShotRatingResult, CritiqueTier } from '../types';
 import { ResearchingIndicator, ErrorState } from './ResearchingIndicator';
-import { fetchWithAuth } from '../utils/api';
+import { fetchWithAuth, getStoredApiKey } from '../utils/api';
+import { directAnalyzeShot } from '../utils/geminiDirect';
 
 // Helper to optimize and resize large images on client to prevent upload timeouts & Vercel 4.5MB payload limits
 function optimizeImage(file: File, maxWidth = 1280, quality = 0.82): Promise<{ dataUrl: string; mimeType: string }> {
@@ -217,33 +218,62 @@ export const ShotRater: React.FC = () => {
     setRetryDelaySeconds(null);
 
     try {
-      const res = await fetchWithAuth('/api/shot-rater', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: imagePreview,
-          mimeType,
-          userNotes: filmmakerNote,
-          tier,
-        }),
-      });
+      let ratingResult: ShotRatingResult | null = null;
+      let serverError: any = null;
 
-      if (!res.ok) {
-        let errMessage = '';
-        try {
-          const errData = await res.json();
-          const delay = errData.retryDelaySeconds || (res.status === 429 ? 15 : null);
-          setRetryDelaySeconds(delay);
-          errMessage = errData.error || errData.message;
-        } catch {
-          const raw = await res.text().catch(() => '');
-          errMessage = raw ? `Server returned: ${raw.slice(0, 180)}` : `Request failed with HTTP status ${res.status}`;
+      try {
+        const res = await fetchWithAuth('/api/shot-rater', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageBase64: imagePreview,
+            mimeType,
+            userNotes: filmmakerNote,
+            tier,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          ratingResult = data.rating;
+        } else {
+          try {
+            const errData = await res.json();
+            const delay = errData.retryDelaySeconds || (res.status === 429 ? 15 : null);
+            setRetryDelaySeconds(delay);
+            serverError = new Error(errData.error || errData.message || `Request failed (${res.status})`);
+          } catch {
+            const raw = await res.text().catch(() => '');
+            serverError = new Error(raw ? `Server returned: ${raw.slice(0, 180)}` : `Request failed with HTTP status ${res.status}`);
+          }
         }
-        throw new Error(errMessage || `Failed to analyze cinematography shot (${res.status}).`);
+      } catch (networkErr: any) {
+        serverError = networkErr;
       }
 
-      const data = await res.json();
-      setResult(data.rating);
+      // If backend failed (e.g. 500 on Vercel or missing server env key), try direct client fallback if user has an API key
+      if (!ratingResult) {
+        const storedKey = getStoredApiKey();
+        if (storedKey) {
+          try {
+            ratingResult = await directAnalyzeShot({
+              imageBase64: imagePreview,
+              mimeType,
+              userNotes: filmmakerNote,
+              tier,
+              apiKey: storedKey,
+            });
+          } catch (directErr: any) {
+            throw directErr;
+          }
+        } else if (serverError) {
+          throw serverError;
+        } else {
+          throw new Error('Google Gemini API key is missing or session expired. Please connect a valid Gemini API key.');
+        }
+      }
+
+      setResult(ratingResult);
     } catch (err: any) {
       console.error(err);
       setError(err?.message || 'Error occurred while analyzing shot.');
