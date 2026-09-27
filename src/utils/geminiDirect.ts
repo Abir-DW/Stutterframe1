@@ -26,7 +26,11 @@ export async function directAnalyzeShot(params: {
   tier?: CritiqueTier;
   apiKey?: string;
 }): Promise<ShotRatingResult> {
-  const apiKey = params.apiKey || getStoredApiKey();
+  const apiKey =
+    params.apiKey ||
+    getStoredApiKey() ||
+    (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+    (import.meta as any).env?.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error('Google Gemini API key is missing. Please enter your Gemini API key.');
   }
@@ -118,7 +122,7 @@ Format your response STRICTLY as JSON with this structure:
 }
 Return only JSON.`;
 
-  const models = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+  const models = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
   let lastError: any = null;
 
   for (const model of models) {

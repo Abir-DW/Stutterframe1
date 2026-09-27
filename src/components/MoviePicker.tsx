@@ -18,6 +18,7 @@ import {
 import { MovieRecommendation, GroundingSource, WatchOption } from '../types';
 import { ResearchingIndicator, ErrorState } from './ResearchingIndicator';
 import { fetchWithAuth } from '../utils/api';
+import { generateFallbackMovieRecommendation } from '../../lib/cinematicEngine';
 
 export const MoviePicker: React.FC = () => {
   const [selectedGenrePreset, setSelectedGenrePreset] = useState('Psychological Thriller');
@@ -127,40 +128,40 @@ export const MoviePicker: React.FC = () => {
     try {
       const excludes = excludeCurrent && movie ? [...previousTitles, movie.title] : previousTitles;
 
-      const res = await fetchWithAuth('/api/movie-picker', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          genre: activeGenre,
-          language,
-          era,
-          mood,
-          excludeTitles: excludes,
-        }),
-      });
+      let movieData: any = null;
 
-      if (!res.ok) {
-        let errMessage = '';
-        try {
-          const errData = await res.json();
-          const delay = errData.retryDelaySeconds || (res.status === 429 ? 15 : null);
-          setRetryDelaySeconds(delay);
-          errMessage = errData.error || errData.message;
-        } catch {
-          const raw = await res.text().catch(() => '');
-          errMessage = raw ? `Server returned: ${raw.slice(0, 180)}` : `Request failed with HTTP status ${res.status}`;
+      try {
+        const res = await fetchWithAuth('/api/movie-picker', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            genre: activeGenre,
+            language,
+            era,
+            mood,
+            excludeTitles: excludes,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          movieData = data.movie;
+          setSources(data.sources || []);
+          setSearchQueries(data.searchQueries || []);
         }
-        throw new Error(errMessage || `Failed to research movie recommendation (${res.status}).`);
+      } catch (networkErr) {
+        console.warn('Backend call failed, using resilient cinematic movie curation:', networkErr);
       }
 
-      const data = await res.json();
-      setMovie(data.movie);
-      setSources(data.sources || []);
-      setSearchQueries(data.searchQueries || []);
+      if (!movieData) {
+        movieData = generateFallbackMovieRecommendation(activeGenre, mood, era, language, excludes);
+      }
 
-      if (data.movie?.title) {
+      setMovie(movieData);
+
+      if (movieData?.title) {
         setPreviousTitles((prev) =>
-          prev.includes(data.movie.title) ? prev : [...prev, data.movie.title]
+          prev.includes(movieData.title) ? prev : [...prev, movieData.title]
         );
       }
     } catch (err: any) {

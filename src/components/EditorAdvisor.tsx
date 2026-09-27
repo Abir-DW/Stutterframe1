@@ -645,15 +645,22 @@ export const EditorAdvisor: React.FC = () => {
         }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
-        setError(data.error || 'Failed to analyze editing software compatibility.');
-        if (data.retryDelaySeconds) {
-          setRetryDelaySeconds(data.retryDelaySeconds);
+        let errMessage = 'Failed to analyze editing software compatibility.';
+        try {
+          const errData = await res.json();
+          errMessage = errData.error || errMessage;
+          if (errData.retryDelaySeconds) {
+            setRetryDelaySeconds(errData.retryDelaySeconds);
+          }
+        } catch {
+          errMessage = `Request failed with HTTP status ${res.status}`;
         }
+        setError(errMessage);
         return;
       }
+
+      const data = await res.json();
 
       setResult(data.advisorResult);
       setSources(data.sources || []);

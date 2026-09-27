@@ -1,10 +1,14 @@
-// Centralized API Fetcher with custom Gemini API Key header injection
+// Centralized API Fetcher with environment-injected or custom Gemini API Key
 export function getStoredApiKey(): string {
   try {
-    return localStorage.getItem('stutterframe-gemini-api-key') || '';
+    const custom = localStorage.getItem('stutterframe-gemini-api-key');
+    if (custom && custom.trim()) {
+      return custom.trim();
+    }
   } catch {
-    return '';
+    // ignore localStorage error
   }
+  return (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY || '';
 }
 
 export function setStoredApiKey(key: string): void {

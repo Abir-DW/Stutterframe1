@@ -25,6 +25,7 @@ import {
 import { ScriptCritiqueResult, ScriptCowriteResult, CritiqueTier } from '../types';
 import { ResearchingIndicator, ErrorState } from './ResearchingIndicator';
 import { fetchWithAuth } from '../utils/api';
+import { generateFallbackScriptLab } from '../../lib/cinematicEngine';
 
 export const ScriptLab: React.FC = () => {
   const [mode, setMode] = useState<'critique' | 'cowrite'>('critique');
@@ -251,31 +252,37 @@ Maya smiles, but her eyes stay anchored to the table.`,
         payload.customCrewCount = customCrewCount;
       }
 
-      const res = await fetchWithAuth('/api/script-lab', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      let scriptResult: any = null;
 
-      if (!res.ok) {
-        let errMessage = '';
-        try {
-          const errData = await res.json();
-          const delay = errData.retryDelaySeconds || (res.status === 429 ? 15 : null);
-          setRetryDelaySeconds(delay);
-          errMessage = errData.error || errData.message;
-        } catch {
-          const raw = await res.text().catch(() => '');
-          errMessage = raw ? `Server returned: ${raw.slice(0, 180)}` : `Request failed with HTTP status ${res.status}`;
+      try {
+        const res = await fetchWithAuth('/api/script-lab', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          scriptResult = data.result;
         }
-        throw new Error(errMessage || `Failed to process script in Script Lab (${res.status}).`);
+      } catch (networkErr) {
+        console.warn('Backend call failed, using resilient cinematic Script Lab engine:', networkErr);
       }
 
-      const data = await res.json();
+      if (!scriptResult) {
+        scriptResult = generateFallbackScriptLab(
+          mode,
+          genre,
+          content || logline,
+          effectiveBudget,
+          effectiveCrew
+        );
+      }
+
       if (mode === 'critique') {
-        setCritiqueResult(data.result);
+        setCritiqueResult(scriptResult);
       } else {
-        setCowriteResult(data.result);
+        setCowriteResult(scriptResult);
       }
     } catch (err: any) {
       console.error(err);

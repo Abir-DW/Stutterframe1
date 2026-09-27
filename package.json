@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build",
+    "build": "vite build && esbuild app.ts --bundle --platform=node --target=node20 --format=esm --outfile=api/index.js --external:express --external:@google/genai --external:dotenv",
     "start": "node server.ts",
     "preview": "vite preview",
     "clean": "rm -rf dist",
