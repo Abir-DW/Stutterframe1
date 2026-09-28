@@ -264,19 +264,12 @@ Maya smiles, but her eyes stay anchored to the table.`,
         if (res.ok) {
           const data = await res.json();
           scriptResult = data.result;
+        } else {
+          const errData = await res.json().catch(() => null);
+          throw new Error(errData?.error || `Request failed with HTTP status ${res.status}`);
         }
-      } catch (networkErr) {
-        console.warn('Backend call failed, using resilient cinematic Script Lab engine:', networkErr);
-      }
-
-      if (!scriptResult) {
-        scriptResult = generateFallbackScriptLab(
-          mode,
-          genre,
-          content || logline,
-          effectiveBudget,
-          effectiveCrew
-        );
+      } catch (networkErr: any) {
+        throw networkErr || new Error('Script doctoring request failed. Please retry.');
       }
 
       if (mode === 'critique') {

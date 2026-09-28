@@ -1,6 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type CursorType = 'default' | 'camera' | 'slate';
+export type CursorType =
+  | 'default'
+  | 'camera'
+  | 'slate'
+  | 'batman-bat'
+  | 'revolver'
+  | 'batarang'
+  | 'endurance'
+  | 'crysknife'
+  | 'sacred-spore'
+  | 'laser-crosshair';
 export type CursorDefaultMode = 'precision' | 'native';
 export type ColorTheme =
   | 'default'
@@ -13,10 +23,36 @@ export type ColorTheme =
   | 'midnight'
   | 'custom';
 
+export type UIStyleType =
+  | 'default'        // Celluloid Classic (Current: 35mm film grain, courier typography, amber clapperboard, vintage tape)
+  | 'godfather'      // The Godfather: Gothic Victorian Mafia Noir (Red/White text, blood creeping up hero, ornate frames, pistol cursor)
+  | 'batman'         // The Batman: Dark Knight Gotham (League Gothic, red/orange/white, animated bats, rain, batarang cursor)
+  | 'interstellar'   // Interstellar (Endurance space font, warping starfield & Gargantua accretion glow, endurance cursor)
+  | 'train-to-busan' // Train to Busan (Biohazard muted horror, foggy railyard backdrop, distressed stencil, KTX cursor)
+  | 'obsession'      // Obsession (Psychological thriller noir, analog TV static backdrop, vertigo surveillance reticle cursor)
+  | 'matrix-code'    // The Matrix: Phosphor Terminal (Animated glitchy text, digital rain code, green monospace, prompt cursor)
+  | 'dune'           // Dune: Arrakis Desert (Ancient Syne glyph typography, sandstone chamfered buttons, crysknife cursor, spice dust storm)
+  | 'avatar'         // Avatar: Pandora Bioluminescence (Exo alien typography, organic glowing aura, woodsprite floating spore cursor & particles)
+  | 'resident-evil'  // Resident Evil: Biohazard Umbrella Corp (Distressed stencil, hazard tape, biohazard reticle cursor, emergency alarm)
+  | 'backrooms'      // The Backrooms: Liminal Level 0 (Yellowed wallpaper grid, fluorescent hum/flicker, VHS camcorder [REC] cursor)
+  | 'hollywood-1969' // Once Upon a Time in Hollywood (1969 Sunset Strip, groovy retro 70s display, marquee drive-in borders, sun flare)
+  | 'blade-runner'   // Blade Runner 2049: Cyber Brutalism (Orbitron Japanese display, spinner blaster laser reticle, neon smog haze)
+  | 'apple-glass'    // Cupertino Studio Glass (Ultra-sleek frosted glassmorphism, SF typography, minimalist translucent materials)
+  | 'grand-budapest' // Wes Anderson Editorial (Maximalist pastel symmetry, elegant editorial serif, double hairline borders)
+  | 'kubrick-space'; // 2001 Monolith Minimalist (Ultra-austere Swiss space minimalism, glowing HAL-9000 eye indicator)
+
 export interface CursorColors {
   default: string;
   camera: string;
   slate: string;
+  'batman-bat'?: string;
+  revolver?: string;
+  batarang?: string;
+  endurance?: string;
+  crysknife?: string;
+  'sacred-spore'?: string;
+  'laser-crosshair'?: string;
+  [key: string]: string | undefined;
 }
 
 export interface CustomThemePalette {
@@ -34,9 +70,11 @@ export interface SettingsContextType {
   flashColor: string;
   theme: ColorTheme;
   customPalette: CustomThemePalette;
+  uiStyle: UIStyleType;
+  setUIStyle: (style: UIStyleType) => void;
   isSettingsOpen: boolean;
-  settingsTab: 'cursor' | 'theme' | 'credits';
-  openSettings: (tab?: 'cursor' | 'theme' | 'credits') => void;
+  settingsTab: 'ui-style' | 'cursor' | 'theme' | 'credits';
+  openSettings: (tab?: 'ui-style' | 'cursor' | 'theme' | 'credits') => void;
   closeSettings: () => void;
   setCursorType: (type: CursorType) => void;
   setCursorColor: (color: string, forType?: CursorType) => void;
@@ -57,6 +95,13 @@ export const DEFAULT_CURSOR_COLORS: CursorColors = {
   default: '#f4f4f5', // Pure Silver / White
   camera: '#f59e0b',  // Amber Gold
   slate: '#06b6d4',   // Neon Cyan
+  'batman-bat': '#f97316', // Gotham Amber/Orange
+  revolver: '#ef4444',     // Crimson Muzzle
+  batarang: '#eab308',     // Wayne Yellow
+  endurance: '#38bdf8',    // Gargantua Cyan
+  crysknife: '#d97706',    // Arrakis Spice
+  'sacred-spore': '#38bdf8',// Eywa Cyan
+  'laser-crosshair': '#10b981', // Phosphor Green
 };
 
 export const DEFAULT_FLASH_COLOR = '#ffffff';
@@ -69,15 +114,55 @@ export const DEFAULT_CUSTOM_PALETTE: CustomThemePalette = {
 };
 
 const DEFAULT_THEME: ColorTheme = 'default';
+const DEFAULT_UI_STYLE: UIStyleType = 'default';
 const DEFAULT_CURSOR_TYPE: CursorType = 'default';
 // Default to native OS pointer so standard OS physics are respected out-of-the-box
 const DEFAULT_CURSOR_DEFAULT_MODE: CursorDefaultMode = 'native';
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [uiStyle, setUIStyleState] = useState<UIStyleType>(() => {
+    try {
+      const saved = localStorage.getItem('stutterframe-ui-style') as UIStyleType;
+      const validStyles: UIStyleType[] = [
+        'default',
+        'godfather',
+        'batman',
+        'interstellar',
+        'train-to-busan',
+        'obsession',
+        'matrix-code',
+        'dune',
+        'avatar',
+        'blade-runner',
+        'resident-evil',
+        'backrooms',
+        'hollywood-1969',
+        'apple-glass',
+        'grand-budapest',
+        'kubrick-space',
+      ];
+      return validStyles.includes(saved) ? saved : DEFAULT_UI_STYLE;
+    } catch {
+      return DEFAULT_UI_STYLE;
+    }
+  });
+
   const [cursorType, setCursorTypeState] = useState<CursorType>(() => {
     try {
       const saved = localStorage.getItem('stutterframe-cursor-type') as CursorType;
-      return saved === 'camera' || saved === 'slate' || saved === 'default' ? saved : DEFAULT_CURSOR_TYPE;
+      const validCursors: CursorType[] = [
+        'default',
+        'camera',
+        'slate',
+        'batman-bat',
+        'revolver',
+        'batarang',
+        'endurance',
+        'crysknife',
+        'sacred-spore',
+        'laser-crosshair',
+      ];
+      return validCursors.includes(saved) ? saved : DEFAULT_CURSOR_TYPE;
     } catch {
       return DEFAULT_CURSOR_TYPE;
     }
@@ -144,9 +229,35 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'cursor' | 'theme' | 'credits'>('cursor');
+  const [settingsTab, setSettingsTab] = useState<'ui-style' | 'cursor' | 'theme' | 'credits'>('ui-style');
   const [pageChangeEventId, setPageChangeEventId] = useState(0);
   const [lastClickPos, setLastClickPos] = useState<{ x: number; y: number } | null>(null);
+
+  // Apply UI style architecture to DOM root
+  const applyUIStyleToDom = useCallback((style: UIStyleType) => {
+    const root = document.documentElement;
+    const body = document.body;
+    root.setAttribute('data-ui-style', style);
+    body.setAttribute('data-ui-style', style);
+  }, []);
+
+  // Sync UI style changes to DOM
+  useEffect(() => {
+    applyUIStyleToDom(uiStyle);
+  }, [uiStyle, applyUIStyleToDom]);
+
+  const setUIStyle = useCallback(
+    (newStyle: UIStyleType) => {
+      setUIStyleState(newStyle);
+      try {
+        localStorage.setItem('stutterframe-ui-style', newStyle);
+      } catch (err) {
+        console.warn('Storage error', err);
+      }
+      applyUIStyleToDom(newStyle);
+    },
+    [applyUIStyleToDom]
+  );
 
   // Apply theme and custom CSS variables to DOM
   const applyThemeToDom = useCallback((currentTheme: ColorTheme, palette: CustomThemePalette) => {
@@ -264,7 +375,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const openSettings = useCallback((tab: 'cursor' | 'theme' | 'credits' = 'cursor') => {
+  const openSettings = useCallback((tab: 'ui-style' | 'cursor' | 'theme' | 'credits' = 'ui-style') => {
     setSettingsTab(tab);
     setIsSettingsOpen(true);
   }, []);
@@ -274,7 +385,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   // OVERALL RESET TO DEFAULT
-  // Explicitly resets cursor to System default Native OS pointer & themes to default
+  // Explicitly resets cursor to System default Native OS pointer, UI style, & themes to default
   const resetAllSettings = useCallback(() => {
     setCursorTypeState(DEFAULT_CURSOR_TYPE);
     setCursorDefaultModeState('native'); // System default Native OS pointer
@@ -282,6 +393,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setFlashColorState(DEFAULT_FLASH_COLOR);
     setThemeState(DEFAULT_THEME);
     setCustomPaletteState(DEFAULT_CUSTOM_PALETTE);
+    setUIStyleState(DEFAULT_UI_STYLE);
 
     try {
       localStorage.removeItem('stutterframe-cursor-type');
@@ -291,12 +403,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.removeItem('stutterframe-flash-color');
       localStorage.removeItem('stutterframe-theme');
       localStorage.removeItem('stutterframe-custom-palette');
+      localStorage.removeItem('stutterframe-ui-style');
     } catch (err) {
       console.warn('Storage clear error', err);
     }
 
     applyThemeToDom(DEFAULT_THEME, DEFAULT_CUSTOM_PALETTE);
-  }, [applyThemeToDom]);
+    applyUIStyleToDom(DEFAULT_UI_STYLE);
+  }, [applyThemeToDom, applyUIStyleToDom]);
 
   // Active cursor color resolved from cursorColors
   const activeCursorColor = cursorColors[cursorType] || DEFAULT_CURSOR_COLORS[cursorType] || '#f59e0b';
@@ -321,6 +435,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         flashColor,
         theme,
         customPalette,
+        uiStyle,
+        setUIStyle,
         isSettingsOpen,
         settingsTab,
         openSettings,

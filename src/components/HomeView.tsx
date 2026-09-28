@@ -146,7 +146,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
                     <span className="text-[10px] font-mono text-amber-400 tracking-widest uppercase">
                       {tool.category}
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 group-hover:text-amber-300 group-hover:border-amber-500/30 transition-colors">
+                    <span className="text-[10px] font-mono text-zinc-400 group-hover:text-amber-300 transition-colors">
                       {tool.badge}
                     </span>
                   </div>

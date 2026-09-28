@@ -6,151 +6,6 @@ import { fileURLToPath } from "url";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 
 // lib/cinematicEngine.ts
-function generateFallbackShotRating(cleanBase64, _mimeType, userNotes = "", tier = "constructive") {
-  let width = 1920;
-  let height = 1080;
-  let avgLuma = 120;
-  let isLowKey = false;
-  let isHighContrast = false;
-  try {
-    const buf = Buffer.from(cleanBase64, "base64");
-    if (buf[0] === 137 && buf[1] === 80 && buf.length > 24) {
-      width = buf.readUInt32BE(16) || 1920;
-      height = buf.readUInt32BE(20) || 1080;
-    } else if (buf[0] === 255 && buf[1] === 216) {
-      let offset = 2;
-      while (offset < buf.length - 8) {
-        if (buf[offset] === 255 && [192, 193, 194, 195].includes(buf[offset + 1])) {
-          height = buf.readUInt16BE(offset + 5) || 1080;
-          width = buf.readUInt16BE(offset + 7) || 1920;
-          break;
-        }
-        offset += 1;
-      }
-    }
-    let total = 0;
-    let highCount = 0;
-    let lowCount = 0;
-    let samples = 0;
-    const step = Math.max(1, Math.floor(buf.length / 400));
-    for (let i = 80; i < buf.length - 80; i += step) {
-      const b = buf[i];
-      total += b;
-      if (b > 215) highCount++;
-      if (b < 45) lowCount++;
-      samples++;
-    }
-    if (samples > 0) {
-      avgLuma = total / samples;
-      isLowKey = avgLuma < 100;
-      isHighContrast = (highCount + lowCount) / samples > 0.32;
-    }
-  } catch {
-  }
-  const ratioVal = height > 0 ? width / height : 1.78;
-  let ratioStr = "16:9 (1.78:1)";
-  if (ratioVal >= 2.2) ratioStr = "2.39:1 Anamorphic Widescreen";
-  else if (ratioVal >= 1.95) ratioStr = "2.00:1 Univisium";
-  else if (ratioVal >= 1.6) ratioStr = "1.85:1 Flat Academy";
-  else if (ratioVal >= 1.25) ratioStr = "4:3 Academy Format";
-  else if (ratioVal <= 0.8) ratioStr = "9:16 Vertical Cinema";
-  const selectedTier = (tier || "constructive").toLowerCase();
-  let overall = 8.1;
-  let comp = 8.4;
-  let light = 7.9;
-  let color = 8.2;
-  let tech = 8.5;
-  if (selectedTier === "friendly") {
-    overall = 8.9;
-    comp = 9.2;
-    light = 8.7;
-    color = 8.9;
-    tech = 9;
-  } else if (selectedTier === "brutal") {
-    overall = 4.8;
-    comp = 5.3;
-    light = 4.5;
-    color = 5;
-    tech = 6.2;
-  } else if (selectedTier === "moderate") {
-    overall = 6.9;
-    comp = 7.2;
-    light = 6.6;
-    color = 7;
-    tech = 7.6;
-  }
-  const focalLength = ratioVal > 2.1 ? "~35mm Anamorphic Lens" : isLowKey ? "~40mm Fast Cine Prime" : "~50mm Spherical Prime";
-  const lightingStyle = isHighContrast ? "4:1 Chiaroscuro Contrast" : "2.5:1 Soft Wrap Key-to-Fill";
-  const tone = isLowKey ? "Atmospheric Neo-Noir / High-Density Shadows" : "Naturalistic Filmic Density";
-  let emotionalImpression = "";
-  if (selectedTier === "brutal") {
-    emotionalImpression = `The frame demonstrates raw creative intent, but the lighting execution lacks discipline. You have substantial shadow density that risks swallowing delicate midtone information, and the visual weight feels congested without deliberate breathing room for the eye.`;
-  } else if (selectedTier === "friendly") {
-    emotionalImpression = `There is an unmistakable cinematic mood here. The framing commands immediate attention, and the spatial relationships within the frame establish a rich, immersive atmosphere that pulls the viewer directly into the story.`;
-  } else if (selectedTier === "moderate") {
-    emotionalImpression = `An objective, capable frame that meets solid festival screener standards. The subject grounding and depth cues are well-established, though dialing in lighting ratios and negative fill will elevate it from good indie capture to festival-grade cinematography.`;
-  } else {
-    emotionalImpression = `The shot communicates a compelling visual signature with clear control over perspective and tone. You've established an intentional mood with your exposure curve; refining the key-to-fill wrap and lead room will lock in masterclass polish.`;
-  }
-  if (userNotes && userNotes.trim()) {
-    emotionalImpression += ` In regard to your note ("${userNotes.trim()}"): the compositional line supports this narrative goal.`;
-  }
-  return {
-    tier: selectedTier,
-    emotionalImpression,
-    shotClassification: {
-      shotType: isLowKey ? "Low-Key Cinematic Frame" : "Atmospheric Composed Shot",
-      apparentFocalLength: focalLength,
-      aspectRatio: `${ratioStr} (${width}x${height})`,
-      visualTone: tone
-    },
-    scores: {
-      overall,
-      composition: comp,
-      lighting: light,
-      color,
-      technicalPurity: tech
-    },
-    compositionFeedback: {
-      summary: `Spatial geometry composed in ${ratioStr} with calculated subject placement.`,
-      strengths: [
-        "Clean eye-line placement aligned with primary compositional axes",
-        "Strong focal plane separation between foreground elements and background",
-        "Balanced quadrant distribution maintaining visual weight across the frame"
-      ],
-      critique: selectedTier === "brutal" ? "Headroom needs tighter discipline; you have dead vertical negative space diluting dramatic tension." : "Consider nudging your lead room forward by 5-8% to provide the subject with forward dramatic momentum."
-    },
-    lightingFeedback: {
-      summary: `${lightingStyle} with controlled highlight roll-off and structured shadow falloff.`,
-      strengths: [
-        "Controlled key-to-fill balance preserving mood and dimensional sculpting",
-        "Clean highlight retention on subject with gentle rolloff into specular peaks"
-      ],
-      critique: "Introduce a subtle negative fill flag on the off-camera side to accentuate jawline and cheekbone contrast."
-    },
-    colorGradeFeedback: {
-      summary: "Harmonious palette distribution with natural skin tone protection and filmic density.",
-      palette: isLowKey ? ["#121417", "#252930", "#565f6e", "#a38f7d", "#dfd5c6"] : ["#1c1a17", "#4a4238", "#8a7968", "#c4b5a2", "#e8dfd3"],
-      critique: "Clean contrast curve in the midtones. Protect skin hue angle along the I-line while adding cool shadow split-toning."
-    },
-    technicalArtifacts: {
-      noiseOrGrain: "Organic filmic texture; clean sensor readout with minimal digital compression artifacts.",
-      detectedIssues: [
-        "Clean edge definition without harsh digital sharpening halos",
-        "Smooth gradient transitions across out-of-focus background planes"
-      ]
-    },
-    vfxInspection: {
-      hasVfxElements: false,
-      assessment: "Authentic optical capture: light wrapping, depth falloff, and lens geometry adhere to physical optics."
-    },
-    actionableFixes: [
-      "On Set: Position a 4x4 solid floppy flag for negative fill on the non-key side to increase facial dimensional contrast.",
-      "Colour Grade: Add an isolated power window on the subject\u2019s face with a gentle +0.3 stop exposure boost and warm midtone lift.",
-      "Lens Choice: Consider stopping down 1/3 stop or using a 1/8 Black Pro-Mist filter to bloom specular reflections naturally."
-    ]
-  };
-}
 function generateFallbackMovieRecommendation(genre, mood, era, _language, excludeTitles = []) {
   const catalog = [
     {
@@ -259,81 +114,6 @@ function generateFallbackMovieRecommendation(genre, mood, era, _language, exclud
     ...match,
     posterUrl: null,
     watchLinks: []
-  };
-}
-function generateFallbackScriptLab(mode = "critique", content = "", genre = "Drama", logline = "", budget = "Micro-Budget ($10k - $100k)") {
-  if (mode === "cowrite") {
-    return {
-      screenplayText: `EXT. RAIN-SLICKED INDUSTRIAL ALLEY - NIGHT
-
-Sodium vapor streetlights hum overhead, casting long amber knives across wet asphalt.
-
-ELENA (30s) presses her back against the brick wall. Trench coat drenched. She checks the cylinder of her revolver\u2014three rounds remaining.
-
-Footsteps splash in the puddles around the corner. Steady. Deliberate.
-
-MARCUS (O.S.)
-You're running out of alleys, Elena.
-
-Elena exhales a slow, controlled breath. She holsters the weapon and pulls a micro-cassette recorder from her inner pocket. Clicks PLAY.
-
-TAPE RECORDER (FILTERED)
-"...the shipment was cleared through Terminal 4 at 0300 hours. The manifest was signed by\u2014"
-
-Elena clicks STOP.
-
-ELENA
-(voice steady, eyes on the corner)
-I don't need an alley, Marcus. I have the manifest.
-
-A silhouette emerges from the steam vent at the mouth of the alley. Marcus stands under the streetlamp, hands visible at his sides.
-
-MARCUS
-Nobody leaves this block with that tape.
-
-ELENA
-Then you better shoot straight.
-
-She kicks an empty steel drum into the puddle\u2014CLANG! The sound echoes through the brick canyon as Elena dives behind the steel dumpster.`,
-      formattingNotes: "Standard Hollywood screenplay format: 12pt Courier, scene headings in uppercase, character cues centered, parentheticals indented.",
-      pacingAssessment: "Tense, action-driven scene structure with high-stakes dialogue and dynamic physical blocking.",
-      logisticsNote: `Containment for ${budget}: Single contained alley location, two cast members, practical sodium streetlights, rain FX minimal rig.`
-    };
-  }
-  return {
-    loglineAnalysis: logline ? `Strong dramatic hook with clear stakes. The central conflict provides immediate visual drive.` : `The premise sets up an authentic character-driven dynamic with strong visual potential.`,
-    narrativeArcScore: 8.2,
-    pacingScore: 7.9,
-    dialogueScore: 8.4,
-    characterAgencyScore: 8,
-    strengths: [
-      "Clear scene objectives with active character conflict rather than passive exposition",
-      "Strong visual beats that give the director and actors concrete physical actions to perform",
-      "Effective atmospheric world-building that naturally dictates lighting and sound design"
-    ],
-    areasForImprovement: [
-      "Deepen subtext in character dialogue by trimming obvious declarations of intent",
-      "Increase mid-scene complications before allowing the protagonist to achieve their mini-objective",
-      "Sharpen the transition out of the scene to propel audience curiosity into the next sequence"
-    ],
-    sceneBySceneBreakdown: [
-      {
-        beat: "Inciting Beat",
-        description: "Protagonist arrives in contained environment under acute time pressure."
-      },
-      {
-        beat: "Rising Complication",
-        description: "Antagonist forces a high-stakes choice with zero room for compromise."
-      },
-      {
-        beat: "Climax / Turn",
-        description: "A physical pivot changes leverage and sets up the following sequence."
-      }
-    ],
-    productionFeasibility: {
-      budgetAlignment: `Well-suited for ${budget}. Locations and cast count remain disciplined and production-friendly.`,
-      crewRequirements: "Can be captured with a lean 4-6 person crew using compact cine equipment and practical lighting."
-    }
   };
 }
 function generateFallbackGear(budgetINR, gearType) {
@@ -448,14 +228,26 @@ app.use((req, _res, next) => {
   next();
 });
 var userSessionApiKey = "";
+function resolveCandidateApiKeys(explicitKey) {
+  const candidates = [];
+  const add = (k) => {
+    if (k && typeof k === "string") {
+      const clean = k.trim();
+      if (clean && clean !== "undefined" && clean !== "null" && !candidates.includes(clean)) {
+        candidates.push(clean);
+      }
+    }
+  };
+  add(explicitKey);
+  add(userSessionApiKey);
+  add(process.env.GEMINI_API_KEY);
+  add(process.env.GOOGLE_API_KEY);
+  add(process.env.VITE_GEMINI_API_KEY);
+  return candidates;
+}
 function resolveApiKey(explicitKey) {
-  if (explicitKey && typeof explicitKey === "string" && explicitKey.trim() && explicitKey.trim() !== "undefined" && explicitKey.trim() !== "null") {
-    return explicitKey.trim();
-  }
-  if (userSessionApiKey && userSessionApiKey.trim()) {
-    return userSessionApiKey.trim();
-  }
-  return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.VITE_GEMINI_API_KEY || "";
+  const candidates = resolveCandidateApiKeys(explicitKey);
+  return candidates[0] || "";
 }
 function extractReqApiKey(req) {
   const headerKey = req.headers["x-gemini-api-key"];
@@ -660,11 +452,10 @@ function normalizeContents(contents) {
   return [{ role: "user", parts: [{ text: String(contents) }] }];
 }
 async function callGeminiREST(model, contents, config, apiKeyOverride) {
-  const apiKey = resolveApiKey(apiKeyOverride);
-  if (!apiKey) {
+  const candidateKeys = resolveCandidateApiKeys(apiKeyOverride);
+  if (candidateKeys.length === 0) {
     throw new Error("Google Gemini API key or session token is missing or expired. Please enter a valid Gemini API key.");
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
   const body = { contents: normalizeContents(contents) };
   if (config) {
     if (config.systemInstruction) {
@@ -681,32 +472,48 @@ async function callGeminiREST(model, contents, config, apiKeyOverride) {
       body.tools = config.tools;
     }
   }
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-goog-api-key": apiKey
-    },
-    body: JSON.stringify(body)
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error?.message || `Gemini API error status ${res.status}`);
+  const apiVersions = ["v1alpha", "v1beta"];
+  let lastErr = null;
+  for (const apiKey of candidateKeys) {
+    for (const apiVer of apiVersions) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey
+          },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error?.message || `Gemini API error status ${res.status}`);
+        }
+        const candidate = data.candidates?.[0];
+        const text = candidate?.content?.parts?.map((p) => p.text).join("") || "";
+        return {
+          text,
+          candidates: data.candidates,
+          usageMetadata: data.usageMetadata
+        };
+      } catch (err) {
+        lastErr = err;
+        const msg = String(err?.message || "");
+        if (msg.includes("401") || msg.includes("UNAUTHENTICATED") || msg.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED") || msg.includes("invalid authentication credentials")) {
+          break;
+        }
+        continue;
+      }
+    }
   }
-  const candidate = data.candidates?.[0];
-  const text = candidate?.content?.parts?.map((p) => p.text).join("") || "";
-  return {
-    text,
-    candidates: data.candidates,
-    usageMetadata: data.usageMetadata
-  };
+  throw lastErr;
 }
 async function* callGeminiStreamREST(model, contents, config, apiKeyOverride) {
-  const apiKey = resolveApiKey(apiKeyOverride);
-  if (!apiKey) {
+  const candidateKeys = resolveCandidateApiKeys(apiKeyOverride);
+  if (candidateKeys.length === 0) {
     throw new Error("Google Gemini API key or session token is missing or expired. Please enter a valid Gemini API key.");
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
   const body = { contents: normalizeContents(contents) };
   if (config) {
     if (config.systemInstruction) {
@@ -723,17 +530,40 @@ async function* callGeminiStreamREST(model, contents, config, apiKeyOverride) {
       body.tools = config.tools;
     }
   }
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-goog-api-key": apiKey
-    },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(errText || `Gemini API error status ${res.status}`);
+  const apiVersions = ["v1alpha", "v1beta"];
+  let res = null;
+  let lastErr = null;
+  for (const apiKey of candidateKeys) {
+    for (const apiVer of apiVersions) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(apiKey)}`;
+        const attemptRes = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey
+          },
+          body: JSON.stringify(body)
+        });
+        if (attemptRes.ok) {
+          res = attemptRes;
+          break;
+        } else {
+          const errText = await attemptRes.text();
+          lastErr = new Error(errText || `Gemini API error status ${attemptRes.status}`);
+          const msg = String(lastErr.message || "");
+          if (msg.includes("401") || msg.includes("UNAUTHENTICATED") || msg.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED") || msg.includes("invalid authentication credentials")) {
+            break;
+          }
+        }
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    if (res && res.ok) break;
+  }
+  if (!res || !res.ok) {
+    throw lastErr || new Error("Failed to connect to Gemini stream");
   }
   const reader = res.body?.getReader();
   if (!reader) throw new Error("Response body reader not available");
@@ -1174,16 +1004,8 @@ Return only JSON.`;
       rating: parsed
     });
   } catch (error) {
-    console.warn("Live vision model encountered error, activating resilient Cinematic Vision engine:", error?.message);
-    const fallbackParsed = generateFallbackShotRating(
-      (req.body?.imageBase64 || "").replace(/^data:image\/\w+;base64,/, ""),
-      req.body?.mimeType || "image/jpeg",
-      req.body?.userNotes || "",
-      req.body?.tier || "constructive"
-    );
-    return res.json({
-      rating: fallbackParsed
-    });
+    console.error("Shot rater API error:", error?.message || error);
+    return handleApiError(res, error);
   }
 });
 app.post(["/api/script-lab", "/script-lab"], async (req, res) => {
@@ -1364,18 +1186,8 @@ Return only JSON.`;
       return res.json({ result: parsed, mode: "cowrite" });
     }
   } catch (error) {
-    console.warn("Live script lab encountered error, activating resilient Screenplay engine:", error?.message);
-    const fallbackParsed = generateFallbackScriptLab(
-      req.body?.mode || "critique",
-      req.body?.content || "",
-      req.body?.genre || "Drama",
-      req.body?.logline || "",
-      req.body?.budget || "Micro-Budget ($10k - $100k)"
-    );
-    return res.json({
-      result: fallbackParsed,
-      mode: req.body?.mode || "critique"
-    });
+    console.error("Script lab API error:", error?.message || error);
+    return handleApiError(res, error);
   }
 });
 app.post(["/api/gear-suggestor", "/gear-suggestor"], async (req, res) => {

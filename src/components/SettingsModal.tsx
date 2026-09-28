@@ -16,9 +16,352 @@ import {
   Check,
   Zap,
   Sliders,
-  Smartphone,
+  Layers,
+  Crosshair,
 } from 'lucide-react';
-import { useSettings, CursorType, ColorTheme } from '../context/SettingsContext';
+import { useSettings, CursorType, ColorTheme, UIStyleType } from '../context/SettingsContext';
+
+interface UIStyleOption {
+  id: UIStyleType;
+  name: string;
+  movieInspiration: string;
+  badge: string;
+  description: string;
+  features: string[];
+  tag: string;
+}
+
+const UI_STYLE_OPTIONS: UIStyleOption[] = [
+  {
+    id: 'default',
+    name: 'Celluloid Classic',
+    movieInspiration: 'Citizen Kane • 35mm Celluloid',
+    badge: 'Original Default',
+    description:
+      'Deep cinematic 35mm darkroom aesthetic with Kodak amber accents, typewriter sluglines, vintage tape tracking, and physical film grain.',
+    features: ['Courier Prime typography', 'Subtle VHS scanlines', 'Kodak amber clapperboard cues', 'Clean balanced geometry'],
+    tag: 'Classic Cinema',
+  },
+  {
+    id: 'godfather',
+    name: 'The Godfather',
+    movieInspiration: 'The Godfather • Francis Ford Coppola',
+    badge: 'Red & White Gothic Mafia',
+    description:
+      'Gothic Victorian typography in high-contrast red & white, animated blood slowly creeping up the hero text, ornate beveled frames, antique snubnose revolver pistol cursor, and tobacco smoke haze.',
+    features: ['Red & white textual theme', 'Animated creeping blood text', 'Vintage pistol crosshair cursor', 'Ornate gold/crimson beveled frames'],
+    tag: 'Mafia Noir',
+  },
+  {
+    id: 'batman',
+    name: 'The Batman: Dark Knight',
+    movieInspiration: 'The Batman • The Dark Knight',
+    badge: 'League Gothic Red/Orange',
+    description:
+      'League Gothic typography in red, orange & stark white, animated bat swarms flying across Gotham rain, Wayne carbon-armor chamfered plates, and carbon Batarang crosshair cursor.',
+    features: ['League Gothic typography', 'Animated flying bat swarm', 'Red/orange & white theme', 'Batarang targeting diamond cursor'],
+    tag: 'Gotham Noir',
+  },
+  {
+    id: 'interstellar',
+    name: 'Interstellar',
+    movieInspiration: 'Interstellar • Christopher Nolan',
+    badge: 'Endurance Deep Space',
+    description:
+      'Audiowide space typography, 3D warping cosmic starfield, Gargantua black hole accretion glow, aerospace titanium bevels, and spinning Endurance modular ring cursor.',
+    features: ['Audiowide space font', '3D warping cosmic starfield', 'Endurance spinning ring cursor', 'Gargantua accretion glow'],
+    tag: 'Space Odyssey',
+  },
+  {
+    id: 'train-to-busan',
+    name: 'Train to Busan',
+    movieInspiration: 'Train to Busan • Yeon Sang-ho',
+    badge: 'Muted Biohazard Rail',
+    description:
+      'Distressed zombie horror typography, foggy desaturated railyard backdrop with railroad track silhouettes, blood-stained steel plates, and KTX rail biohazard reticle cursor.',
+    features: ['Special Elite horror font', 'Foggy railyard track silhouettes', 'KTX rail biohazard cursor', 'Muted desaturated horror palette'],
+    tag: 'Horror Survival',
+  },
+  {
+    id: 'obsession',
+    name: 'Obsession',
+    movieInspiration: 'Obsession • Brian De Palma • Hitchcock Vertigo',
+    badge: 'Psychological Vertigo',
+    description:
+      'Fractured film noir typography, real-time analog TV static noise backdrop, hypnotic vertigo concentric surveillance circles, and hypnotic vertigo surveillance iris cursor.',
+    features: ['Film noir italic serif', 'Real-time analog TV static noise', 'Hypnotic vertigo iris cursor', 'Cold surveillance monochrome & red'],
+    tag: 'Psychological Noir',
+  },
+  {
+    id: 'matrix-code',
+    name: 'The Matrix Terminal',
+    movieInspiration: 'The Matrix • The Wachowskis',
+    badge: 'Phosphor Cyber Terminal',
+    description:
+      'Authentic cyberpunk green phosphor terminal with animated glitchy digital distortion text, live digital rain code streaming, CRT cathode glow, and terminal prompt cursor.',
+    features: ['Animated glitchy digital text', 'Real-time green digital rain canvas', 'Terminal prompt >_ cursor', 'Bracketed cyber controls'],
+    tag: 'Cyberpunk',
+  },
+  {
+    id: 'resident-evil',
+    name: 'Resident Evil: Biohazard',
+    movieInspiration: 'Resident Evil • Raccoon City Outbreak',
+    badge: 'Umbrella Corp Biohazard',
+    description:
+      'Distressed horror stencil typography, diagonal hazard warning stripes, Umbrella Corp biohazard reticle cursor, and emergency crimson containment beacons.',
+    features: ['Black Ops One & Special Elite fonts', 'Hazard warning tape borders', 'Umbrella biohazard reticle cursor', 'Emergency crimson quarantine pulse'],
+    tag: 'Horror Survival',
+  },
+  {
+    id: 'backrooms',
+    name: 'The Backrooms: Level 0',
+    movieInspiration: 'The Backrooms (Kane Pixels) • Liminal Horror',
+    badge: 'Liminal Office Horror',
+    description:
+      'Endless repeating damp yellowed wallpaper, depressing fluorescent office partitions, flickering 60Hz tube lights, and 1990s VHS Camcorder HUD cursor with blinking [REC].',
+    features: ['VT323 retro dot-matrix font', 'Damp yellow wallpaper pattern', 'VHS camcorder [REC] cursor', 'Fluorescent tube flicker & hum'],
+    tag: 'Liminal Horror',
+  },
+  {
+    id: 'hollywood-1969',
+    name: 'Once Upon a Time in Hollywood',
+    movieInspiration: 'Once Upon a Time in Hollywood • Tarantino',
+    badge: '1969 Sunset Strip',
+    description:
+      'Groovy 1969 psychedelic retro typography, drive-in marquee neon golden frames, vintage 35mm film reel pointer cursor, and warm sun-drenched California flare.',
+    features: ['Righteous groovy 70s display font', 'Drive-in marquee neon borders', '35mm film reel pointer cursor', 'California golden hour lens flare'],
+    tag: '1969 Retro',
+  },
+  {
+    id: 'dune',
+    name: 'Dune: Arrakis',
+    movieInspiration: 'Dune • Denis Villeneuve • Frank Herbert',
+    badge: 'Arrakis Desert Monolith',
+    description:
+      'Ancient desert sci-fi glyph typography, sandstone tablet chamfered buttons, Fremen crysknife compass cursor, and a swirling golden spice storm.',
+    features: ['Syne & Cinzel desert typography', 'Chamfered sandstone tablet buttons', 'Fremen crysknife blade cursor', 'Swirling golden spice dust particles'],
+    tag: 'Desert Sci-Fi',
+  },
+  {
+    id: 'avatar',
+    name: 'Avatar: Pandora',
+    movieInspiration: 'Avatar • James Cameron',
+    badge: 'Bioluminescent Rainforest',
+    description:
+      'Bioluminescent cyan & ultraviolet organic aura, curved glowing glassmorphic frames, and sacred floating Woodsprites (Atokirina) drifting upward.',
+    features: ['Exo 2 alien sci-fi typography', 'Curved bioluminescent glow frames', 'Sacred Woodsprite spore cursor', 'Drifting glowing spore particles'],
+    tag: 'Bioluminescent',
+  },
+  {
+    id: 'blade-runner',
+    name: 'Blade Runner 2049',
+    movieInspiration: 'Blade Runner 2049 • Denis Villeneuve',
+    badge: 'Cyber Neo-Brutalism',
+    description:
+      'Monolithic industrial brutalism with Orbitron Japanese typography, chamfered HUD panels, LAPD blaster laser reticle cursor, and neon smog haze.',
+    features: ['Orbitron & Chakra Petch display', 'Zero-radius chamfered panels', 'Blaster laser reticle cursor', 'Neon orange smog & telemetry HUD'],
+    tag: 'Neo-Brutalism',
+  },
+  {
+    id: 'apple-glass',
+    name: 'Cupertino Studio Glass',
+    movieInspiration: 'Her • Tron: Legacy • Apple Design',
+    badge: 'Frosted Glassmorphism',
+    description:
+      'Ultra-sleek, minimalist acrylic frosted glass. Translucent layered materials, specular highlights, refined SF system typography, and floating ambient light orbs.',
+    features: ['Backdrop blur acrylics', 'Clean modern sans-serif typography', 'Hairline specular glass reflections', 'Floating ethereal light orbs'],
+    tag: 'Sleek Minimalist',
+  },
+  {
+    id: 'grand-budapest',
+    name: 'The Grand Budapest',
+    movieInspiration: 'The Grand Budapest Hotel • Wes Anderson',
+    badge: 'Editorial Maximalism',
+    description:
+      'Storybook maximalism with obsessive symmetry, ornate double-line frames, elegant literary serif typography, vintage stamps, and drifting golden dust motes.',
+    features: ['Playfair literary serif', 'Symmetrical double-line picture frames', 'Warm floating golden dust motes', 'Dusty rose & brass palette'],
+    tag: 'Storybook Maximalism',
+  },
+  {
+    id: 'kubrick-space',
+    name: '2001: A Space Odyssey',
+    movieInspiration: '2001: A Space Odyssey • Stanley Kubrick',
+    badge: 'Monolith Minimalist',
+    description:
+      'Ultra-austere Swiss space minimalism. Pure cosmic void, crisp aerospace brackets, sprawling negative space, and the iconic glowing red HAL-9000 sensor.',
+    features: ['Swiss sans typography', 'Glowing crimson HAL-9000 optic sensor', 'Deep space cosmic starfield particles', 'Razor-thin precision aerospace hairlines'],
+    tag: 'Space Minimalist',
+  },
+];
+
+interface CursorOption {
+  id: CursorType;
+  name: string;
+  badge: string;
+  badgeColor: string;
+  desc: string;
+  renderIcon: (color: string) => React.ReactNode;
+}
+
+const CURSOR_OPTIONS: CursorOption[] = [
+  {
+    id: 'default',
+    name: 'System Default',
+    badge: 'Precision Pointer',
+    badgeColor: 'text-zinc-300 bg-zinc-800/80 border-zinc-700',
+    desc: 'Clean native operating system pointer or colored cinema precision arrow.',
+    renderIcon: (c) => <MousePointer className="w-4 h-4" style={{ color: c }} />,
+  },
+  {
+    id: 'batman-bat',
+    name: 'The Gotham Bat',
+    badge: 'Flapping Wings',
+    badgeColor: 'text-orange-400 bg-orange-500/15 border-orange-500/30',
+    desc: 'Dark Knight nocturnal bat with fluid flapping wings and Wayne radar scan.',
+    renderIcon: (c) => (
+      <svg width="24" height="14" viewBox="0 0 48 24" fill="none" className="drop-shadow-sm">
+        <path
+          d="M24 3.5 L22 1 L20 4.5 C16 3.5 12 2.5 10 3.5 L1 8 Q4 13 8 15 Q11 17 15 16 Q18 16.5 22 15 L24 17.5 L26 15 Q30 16.5 33 16 Q37 17 40 15 Q44 13 47 8 L38 3.5 C36 2.5 32 3.5 28 4.5 L26 1 Z"
+          fill="#18181b"
+          stroke={c || '#f97316'}
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <polygon points="20.5,3.5 22,0.8 23.5,3.8" fill={c || '#f97316'} />
+        <polygon points="27.5,3.5 26,0.8 24.5,3.8" fill={c || '#f97316'} />
+        <circle cx="22.2" cy="5.2" r="1" fill="#ffffff" />
+        <circle cx="25.8" cy="5.2" r="1" fill="#ffffff" />
+        <line x1="10" y1="3.5" x2="8" y2="15" stroke={c || '#f97316'} strokeWidth="1" opacity="0.7" />
+        <line x1="38" y1="3.5" x2="40" y2="15" stroke={c || '#f97316'} strokeWidth="1" opacity="0.7" />
+      </svg>
+    ),
+  },
+  {
+    id: 'revolver',
+    name: 'Snubnose Revolver',
+    badge: 'Revolving Cylinder',
+    badgeColor: 'text-red-400 bg-red-500/15 border-red-500/30',
+    desc: 'Mafia snubnose revolver with revolving cylinder and brass front sight pin.',
+    renderIcon: (c) => (
+      <svg width="22" height="18" viewBox="0 0 48 34" fill="none" className="drop-shadow-sm">
+        {/* Barrel & Sight */}
+        <path d="M4 5L5.5 2H7.5L7.5 5H4Z" fill="#e2e8f0" stroke="#0f172a" strokeWidth="0.8" />
+        <circle cx="6" cy="3.5" r="1.3" fill={c || '#ef4444'} />
+        <path d="M3 5H18V11H3C2.2 11 1.8 10.4 1.8 9.5V6.5C1.8 5.6 2.2 5 3 5Z" fill="#1e293b" stroke={c || '#ef4444'} strokeWidth="1" />
+        <path d="M5 11H17V13.8H6C5.4 13.8 5 13.4 5 12.8V11Z" fill="#0f172a" stroke="#334155" strokeWidth="0.8" />
+        {/* Top strap */}
+        <path d="M17 5H32V7.5H17V5Z" fill="#1e293b" stroke="#0f172a" strokeWidth="1" />
+        {/* 6-Chamber Cylinder */}
+        <rect x="17.5" y="7.5" width="12" height="10" rx="1.8" fill="#0f172a" stroke={c || '#ef4444'} strokeWidth="1.2" />
+        <path d="M18.5 9.2H28.5" stroke="#334155" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M18 12.5H29" stroke="#1e293b" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M18.5 15.6H28.5" stroke="#334155" strokeWidth="1.8" strokeLinecap="round" />
+        {/* Hammer */}
+        <path d="M33 7L37.5 2.5C38.2 2 39.2 2.6 39 3.5L38 6.5L35 8.5" fill="#94a3b8" stroke="#0f172a" strokeWidth="0.9" />
+        {/* Trigger guard */}
+        <path d="M19 18V21C19 25 23.5 26.5 27 25C28.5 24.2 29.5 22.2 29.5 19.5" stroke="#0f172a" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        {/* Walnut Grip */}
+        <path d="M30 18.5C31.5 19.8 33 21.5 33 24.5C33 27.5 31.5 30.5 29.5 33C28 34.5 25.5 34.5 23.8 33.5C22 32.5 21.5 30.8 22 28C22.5 25 24.2 22.5 26 20L28 18.5" fill="#78350f" stroke="#451a03" strokeWidth="1.3" strokeLinejoin="round" />
+        <circle cx="27.5" cy="26.5" r="1.5" fill="#fbbf24" stroke="#92400e" strokeWidth="0.5" />
+      </svg>
+    ),
+  },
+  {
+    id: 'batarang',
+    name: 'Wayne Batarang',
+    badge: 'Aerodynamic Spin',
+    badgeColor: 'text-yellow-400 bg-yellow-500/15 border-yellow-500/30',
+    desc: 'High-tensile carbon aerodynamic batarang with Wayne tactical targeting diamond.',
+    renderIcon: (c) => (
+      <svg width="24" height="12" viewBox="0 0 48 20" fill="none" className="drop-shadow-sm">
+        <path
+          d="M24 3 L22 1 L20 4 C14 2 8 2 0 4.5 Q3.5 8 7 10 Q11 12 15 12 Q19 14 24 18.5 Q29 14 33 12 Q37 12 41 10 Q44.5 8 48 4.5 C40 2 34 2 28 4 L26 1 Z"
+          fill="#18181b"
+          stroke={c || '#eab308'}
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path d="M20 4L24 7.5L28 4" stroke="#71717a" strokeWidth="1" strokeLinejoin="round" />
+        <line x1="24" y1="7.5" x2="24" y2="18.5" stroke="#71717a" strokeWidth="1" />
+        <line x1="9" y1="6" x2="16" y2="7" stroke={c || '#eab308'} strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="39" y1="6" x2="32" y2="7" stroke={c || '#eab308'} strokeWidth="1.2" strokeLinecap="round" />
+        <circle cx="24" cy="9.5" r="2.2" fill="#18181b" stroke={c || '#eab308'} strokeWidth="1" />
+        <polygon points="24,8.2 25.4,9.6 24,11 22.6,9.6" fill={c || '#facc15'} />
+      </svg>
+    ),
+  },
+  {
+    id: 'camera',
+    name: 'Cinema Camera',
+    badge: 'Viewfinder Flash',
+    badgeColor: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+    desc: '35mm viewfinder camera triggering a gentle shutter flash only on navigation.',
+    renderIcon: (c) => <Camera className="w-4 h-4" style={{ color: c }} />,
+  },
+  {
+    id: 'slate',
+    name: 'Movie Slate',
+    badge: 'Stick Snap',
+    badgeColor: 'text-cyan-400 bg-cyan-500/15 border-cyan-500/30',
+    desc: 'Zebra clapperboard stick snapping shut cleanly on page change.',
+    renderIcon: (c) => <Clapperboard className="w-4 h-4" style={{ color: c }} />,
+  },
+  {
+    id: 'sacred-spore',
+    name: 'Pandora Woodsprite',
+    badge: 'Bioluminescent',
+    badgeColor: 'text-sky-400 bg-sky-500/15 border-sky-500/30',
+    desc: 'Floating sacred Atokirina spore drifting with glowing bioluminescent tentacles.',
+    renderIcon: (c) => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="animate-sporeDrift">
+        <path d="M5 11C5 6 8 3 12 3C16 3 19 6 19 11C19 12.5 16 12.5 14 11.5C12 10.5 12 10.5 10 11.5C8 12.5 5 12.5 5 11Z" fill="rgba(56,189,248,0.4)" stroke={c || '#38bdf8'} strokeWidth="1.2" />
+        <path d="M8 12C8 15 7 18 6 20" stroke="#c084fc" strokeWidth="1" strokeLinecap="round" />
+        <path d="M12 12C12 16 13 18 12 21" stroke={c || '#38bdf8'} strokeWidth="1" strokeLinecap="round" />
+        <path d="M16 12C16 15 17 18 18 20" stroke="#c084fc" strokeWidth="1" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    id: 'crysknife',
+    name: 'Fremen Crysknife',
+    badge: 'Spice Dust',
+    badgeColor: 'text-amber-500 bg-amber-500/15 border-amber-500/30',
+    desc: 'Ancient Arrakis sandworm tooth dagger with sand compass reticle.',
+    renderIcon: (c) => (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke={c || '#d97706'} strokeWidth="0.8" strokeDasharray="2 2" opacity="0.6" />
+        <path d="M5 19L10 14L15 7C17 4.5 19 2.5 20.5 3.5C21.5 5 19.5 7 17 9L12 14L7 19H5Z" fill="#fef3c7" stroke={c || '#d97706'} strokeWidth="1.2" />
+      </svg>
+    ),
+  },
+  {
+    id: 'laser-crosshair',
+    name: 'Laser Crosshair',
+    badge: 'Targeting Optic',
+    badgeColor: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+    desc: 'Blade Runner spinner blaster crosshair with rotating targeting ring.',
+    renderIcon: (c) => (
+      <Crosshair className="w-4 h-4 animate-laserCrosshairPulse" style={{ color: c || '#10b981' }} />
+    ),
+  },
+  {
+    id: 'endurance',
+    name: 'Endurance Ring',
+    badge: 'Station Spin',
+    badgeColor: 'text-sky-300 bg-sky-500/15 border-sky-500/30',
+    desc: 'Interstellar 12-pod orbital spacecraft station rotating smoothly in deep space.',
+    renderIcon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="animate-enduranceStationSpin">
+        <circle cx="12" cy="12" r="8" stroke={c || '#38bdf8'} strokeWidth="1" strokeDasharray="2 2" />
+        <circle cx="12" cy="12" r="2" fill="#0284c7" />
+        <rect x="11" y="2.5" width="2" height="2" rx="0.4" fill="#e0f2fe" />
+        <rect x="11" y="19.5" width="2" height="2" rx="0.4" fill="#e0f2fe" />
+        <rect x="2.5" y="11" width="2" height="2" rx="0.4" fill="#e0f2fe" />
+        <rect x="19.5" y="11" width="2" height="2" rx="0.4" fill="#e0f2fe" />
+      </svg>
+    ),
+  },
+];
 
 const PRESET_CURSOR_COLORS = [
   { name: 'Amber Gold', hex: '#f59e0b' },
@@ -122,11 +465,13 @@ export const SettingsModal: React.FC = () => {
     customPalette,
     setCustomPalette,
     resetCustomPalette,
+    uiStyle,
+    setUIStyle,
     resetAllSettings,
     triggerPageChangeEffect,
   } = useSettings();
 
-  const [activeTab, setActiveTab] = useState<'cursor' | 'theme' | 'credits'>(settingsTab);
+  const [activeTab, setActiveTab] = useState<'ui-style' | 'cursor' | 'theme' | 'credits'>(settingsTab);
   const [editingColorFor, setEditingColorFor] = useState<CursorType>(cursorType);
   const [testClapCount, setTestClapCount] = useState(0);
 
@@ -203,6 +548,19 @@ export const SettingsModal: React.FC = () => {
         {/* Tab Switcher Pills */}
         <div className="px-3 sm:px-6 pt-2.5 pb-2 border-b border-zinc-800/80 bg-zinc-950 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
           <button
+            onClick={() => setActiveTab('ui-style')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+              activeTab === 'ui-style'
+                ? 'bg-amber-500 text-black font-bold shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>UI Architecture</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block ml-0.5" />
+          </button>
+
+          <button
             onClick={() => setActiveTab('cursor')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
               activeTab === 'cursor'
@@ -241,139 +599,187 @@ export const SettingsModal: React.FC = () => {
 
         {/* Tab Content Body */}
         <div className="p-3.5 sm:p-6 overflow-y-auto space-y-6 text-zinc-300 text-sm font-sans flex-1">
-          {/* TAB 1: CURSOR CUSTOMIZATION (PC USERS) */}
-          {activeTab === 'cursor' && (
+          {/* TAB 0: UI ARCHITECTURE & MOVIE-INSPIRED DESIGN SYSTEM */}
+          {activeTab === 'ui-style' && (
             <div className="space-y-6 animate-fadeIn">
-              {/* Phone/Mobile Notice */}
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-mono text-zinc-300 flex items-start gap-2.5">
-                <Smartphone className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                <p>
-                  <strong className="text-amber-400">Mobile &amp; Phone UI Optimized:</strong> Custom cursors are strictly active for desktop mouse/trackpad users. On phone and tablet touchscreens, native touch controls and fluid physics are automatically preserved.
+              {/* Header Context Card */}
+              <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 border border-amber-500/30 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-amber-400" />
+                    <span className="font-courier text-xs font-bold text-white uppercase tracking-wider">
+                      Cinema &amp; Iconic Design Archetypes
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono text-[10px] uppercase font-bold border border-amber-500/30">
+                    {UI_STYLE_OPTIONS.length} Architectures
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 leading-relaxed font-sans">
+                  Transform the entire interface into authentic cinematic design languages. Each architecture alters typography, surface textures, border physics, geometry, and real-time atmospheric particles.
                 </p>
               </div>
 
+              {/* UI Architecture Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {UI_STYLE_OPTIONS.map((style) => {
+                  const isSelected = uiStyle === style.id;
+                  return (
+                    <div
+                      key={style.id}
+                      onClick={() => setUIStyle(style.id)}
+                      className={`p-4 rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between group touch-manipulation active:scale-[0.99] ${
+                        isSelected
+                          ? 'bg-zinc-900 border-amber-400 shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/50'
+                          : 'bg-zinc-950/80 hover:bg-zinc-900/90 border-zinc-800 hover:border-zinc-700'
+                      }`}
+                    >
+                      <div className="space-y-2.5">
+                        {/* Top Meta row */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-semibold">
+                            {style.tag}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
+                              isSelected
+                                ? 'bg-amber-500 text-black'
+                                : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                            }`}
+                          >
+                            {isSelected ? 'Active UI' : style.badge}
+                          </span>
+                        </div>
+
+                        {/* Title & Movie Inspiration */}
+                        <div>
+                          <h4 className="font-courier text-base font-bold text-white group-hover:text-amber-300 transition-colors">
+                            {style.name}
+                          </h4>
+                          <span className="text-[11px] font-mono text-zinc-400 block mt-0.5 italic">
+                            Film Inspiration: {style.movieInspiration}
+                          </span>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-xs text-zinc-300 font-sans leading-relaxed">
+                          {style.description}
+                        </p>
+
+                        {/* Feature Badges */}
+                        <div className="pt-1.5 flex flex-wrap gap-1.5">
+                          {style.features.map((feat, idx) => (
+                            <span
+                              key={idx}
+                              className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/50 border border-zinc-800/80 text-zinc-400"
+                            >
+                              {feat}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Bottom status / selector button */}
+                      <div className="pt-3 mt-3 border-t border-zinc-900 flex items-center justify-between text-xs font-mono">
+                        <span className={isSelected ? 'text-amber-400 font-bold' : 'text-zinc-500'}>
+                          {isSelected ? '✓ Currently Live' : 'Click to Apply Style'}
+                        </span>
+                        <div
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                            isSelected
+                              ? 'border-amber-400 bg-amber-400 text-black'
+                              : 'border-zinc-700 bg-transparent'
+                          }`}
+                        >
+                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Instant Rollback Button */}
+              <div className="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <div className="font-courier text-xs font-bold text-white uppercase">
+                    Rollback to Default Cinema UI
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
+                    Instantly reverts the interface to Celluloid Classic (current 35mm default) without altering your data.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setUIStyle('default')}
+                  className="px-3.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer flex-shrink-0 flex items-center gap-1.5 active:scale-95"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Restore Default UI</span>
+                </button>
+              </div>
+            </div>
+          )}
+          {/* TAB 1: CURSOR CUSTOMIZATION (PC USERS) */}
+          {activeTab === 'cursor' && (
+            <div className="space-y-6 animate-fadeIn">
               {/* 1. Cursor Type Selector */}
               <div className="space-y-3">
                 <label className="text-xs font-mono text-zinc-400 uppercase tracking-wider block">
                   Select Cursor Style
                 </label>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-                  {/* Option 1: Default */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCursorType('default');
-                      setEditingColorFor('default');
-                    }}
-                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden active:scale-[0.99] ${
-                      cursorType === 'default'
-                        ? 'border-amber-400 bg-amber-500/15 text-white shadow-md'
-                        : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div
-                        className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center transition-colors"
-                        style={{ color: cursorColors.default }}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
+                  {CURSOR_OPTIONS.map((opt) => {
+                    const isSelected = cursorType === opt.id;
+                    const optColor = cursorColors[opt.id] || '#f59e0b';
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          setCursorType(opt.id);
+                          setEditingColorFor(opt.id);
+                        }}
+                        className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden active:scale-[0.99] flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-amber-400 bg-amber-500/15 text-white shadow-md ring-1 ring-amber-400/40'
+                            : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200'
+                        }`}
                       >
-                        <MousePointer className="w-4 h-4" />
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full border border-black/40 shadow-xs"
-                          style={{ backgroundColor: cursorColors.default }}
-                        />
-                        {cursorType === 'default' && (
-                          <span className="w-2 h-2 rounded-full bg-amber-400" />
-                        )}
-                      </div>
-                    </div>
-                    <div className="font-courier font-bold text-sm text-white mb-0.5">
-                      System Default
-                    </div>
-                    <p className="text-[11px] text-zinc-400 leading-snug">
-                      {cursorDefaultMode === 'native'
-                        ? 'Native operating system pointer (clean & standard).'
-                        : 'Colored cinema precision pointer arrow.'}
-                    </p>
-                  </button>
-
-                  {/* Option 2: Camera Viewfinder */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCursorType('camera');
-                      setEditingColorFor('camera');
-                    }}
-                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden active:scale-[0.99] ${
-                      cursorType === 'camera'
-                        ? 'border-amber-400 bg-amber-500/15 text-white shadow-md'
-                        : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div
-                        className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center transition-colors"
-                        style={{ color: cursorColors.camera }}
-                      >
-                        <Camera className="w-4 h-4" />
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full border border-black/40 shadow-xs"
-                          style={{ backgroundColor: cursorColors.camera }}
-                        />
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase">
-                          Soft Flash
-                        </span>
-                      </div>
-                    </div>
-                    <div className="font-courier font-bold text-sm text-white mb-0.5">
-                      Cinema Camera
-                    </div>
-                    <p className="text-[11px] text-zinc-400 leading-snug">
-                      Viewfinder that triggers a gentle shutter flash <strong className="text-white">only on page changes</strong>.
-                    </p>
-                  </button>
-
-                  {/* Option 3: Movie Slate */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCursorType('slate');
-                      setEditingColorFor('slate');
-                    }}
-                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden active:scale-[0.99] ${
-                      cursorType === 'slate'
-                        ? 'border-amber-400 bg-amber-500/15 text-white shadow-md'
-                        : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div
-                        className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center transition-colors"
-                        style={{ color: cursorColors.slate }}
-                      >
-                        <Clapperboard className="w-4 h-4" />
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full border border-black/40 shadow-xs"
-                          style={{ backgroundColor: cursorColors.slate }}
-                        />
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 uppercase">
-                          Stick Snap
-                        </span>
-                      </div>
-                    </div>
-                    <div className="font-courier font-bold text-sm text-white mb-0.5">
-                      Movie Slate
-                    </div>
-                    <p className="text-[11px] text-zinc-400 leading-snug">
-                      Clapper stick snaps shut cleanly <strong className="text-white">only on page changes</strong> (concentric rings removed).
-                    </p>
-                  </button>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div
+                              className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center transition-colors"
+                              style={{ color: optColor }}
+                            >
+                              {opt.renderIcon(optColor)}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-black/40 shadow-xs"
+                                style={{ backgroundColor: optColor }}
+                              />
+                              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border uppercase ${opt.badgeColor}`}>
+                                {opt.badge}
+                              </span>
+                              {isSelected && (
+                                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse ml-0.5" />
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="font-courier font-bold text-sm text-white mb-0.5 flex items-center gap-1.5">
+                              <span>{opt.name}</span>
+                            </div>
+                            <p className="text-[11px] text-zinc-400 leading-snug">
+                              {opt.desc}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Sub-toggle for Default Cursor Style */}
@@ -484,54 +890,29 @@ export const SettingsModal: React.FC = () => {
                 </div>
 
                 {/* Cursor selector tabs for coloring */}
-                <div className="flex items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800 w-fit">
-                  <button
-                    type="button"
-                    onClick={() => setEditingColorFor('default')}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
-                      editingColorFor === 'default'
-                        ? 'bg-zinc-800 text-white font-bold border border-zinc-700'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <span
-                      className="w-2.5 h-2.5 rounded-full border border-black/40"
-                      style={{ backgroundColor: cursorColors.default }}
-                    />
-                    <span>Default</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setEditingColorFor('camera')}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
-                      editingColorFor === 'camera'
-                        ? 'bg-zinc-800 text-white font-bold border border-zinc-700'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <span
-                      className="w-2.5 h-2.5 rounded-full border border-black/40"
-                      style={{ backgroundColor: cursorColors.camera }}
-                    />
-                    <span>Camera</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setEditingColorFor('slate')}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
-                      editingColorFor === 'slate'
-                        ? 'bg-zinc-800 text-white font-bold border border-zinc-700'
-                        : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    <span
-                      className="w-2.5 h-2.5 rounded-full border border-black/40"
-                      style={{ backgroundColor: cursorColors.slate }}
-                    />
-                    <span>Slate</span>
-                  </button>
+                <div className="flex flex-wrap items-center gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                  {CURSOR_OPTIONS.map((opt) => {
+                    const isSelected = editingColorFor === opt.id;
+                    const optColor = cursorColors[opt.id] || '#f59e0b';
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setEditingColorFor(opt.id)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
+                          isSelected
+                            ? 'bg-zinc-800 text-white font-bold border border-zinc-700'
+                            : 'text-zinc-400 hover:text-zinc-200'
+                        }`}
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full border border-black/40"
+                          style={{ backgroundColor: optColor }}
+                        />
+                        <span>{opt.name.replace('System ', '').replace('The ', '')}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">

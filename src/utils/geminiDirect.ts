@@ -26,12 +26,22 @@ export async function directAnalyzeShot(params: {
   tier?: CritiqueTier;
   apiKey?: string;
 }): Promise<ShotRatingResult> {
-  const apiKey =
-    params.apiKey ||
-    getStoredApiKey() ||
-    (import.meta as any).env?.VITE_GEMINI_API_KEY ||
-    (import.meta as any).env?.GEMINI_API_KEY;
-  if (!apiKey) {
+  const candidateKeys: string[] = [];
+  const add = (k?: string) => {
+    if (k && typeof k === 'string') {
+      const clean = k.trim();
+      if (clean && clean !== 'undefined' && clean !== 'null' && !candidateKeys.includes(clean)) {
+        candidateKeys.push(clean);
+      }
+    }
+  };
+
+  add(params.apiKey);
+  add(getStoredApiKey());
+  add((import.meta as any).env?.VITE_GEMINI_API_KEY);
+  add((import.meta as any).env?.GEMINI_API_KEY);
+
+  if (candidateKeys.length === 0) {
     throw new Error('Google Gemini API key is missing. Please enter your Gemini API key.');
   }
 
@@ -122,53 +132,67 @@ Format your response STRICTLY as JSON with this structure:
 }
 Return only JSON.`;
 
-  const models = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
+  const models = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+  const apiVersions = ['v1alpha', 'v1beta'];
   let lastError: any = null;
 
-  for (const model of models) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-goog-api-key': apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [
+  for (const apiKey of candidateKeys) {
+    for (const model of models) {
+      for (const apiVer of apiVersions) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey,
+            },
+            body: JSON.stringify({
+              contents: [
                 {
-                  inlineData: {
-                    data: cleanBase64,
-                    mimeType: safeMime,
-                  },
-                },
-                {
-                  text: visionPrompt,
+                  role: 'user',
+                  parts: [
+                    {
+                      inlineData: {
+                        data: cleanBase64,
+                        mimeType: safeMime,
+                      },
+                    },
+                    {
+                      text: visionPrompt,
+                    },
+                  ],
                 },
               ],
-            },
-          ],
-        }),
-      });
+            }),
+          });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error?.message || `Google API status ${res.status}`);
-      }
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error?.message || `Google API status ${res.status}`);
+          }
 
-      const text = data.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join('') || '';
-      const parsed = extractJson(text);
-      if (!parsed) {
-        throw new Error('Failed to parse cinematography evaluation JSON.');
+          const text = data.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join('') || '';
+          const parsed = extractJson(text);
+          if (!parsed) {
+            throw new Error('Failed to parse cinematography evaluation JSON.');
+          }
+          parsed.tier = selectedTier;
+          return parsed;
+        } catch (err: any) {
+          lastError = err;
+          const msg = String(err?.message || '');
+          if (
+            msg.includes('401') ||
+            msg.includes('UNAUTHENTICATED') ||
+            msg.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
+            msg.includes('invalid authentication credentials')
+          ) {
+            break; // try next key
+          }
+          continue;
+        }
       }
-      parsed.tier = selectedTier;
-      return parsed;
-    } catch (err: any) {
-      lastError = err;
-      continue;
     }
   }
 

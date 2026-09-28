@@ -91,19 +91,29 @@ app.use((req, _res, next) => {
 // Dynamic API Key retrieval for serverless, runtime, and client-supplied sessions
 let userSessionApiKey = '';
 
+function resolveCandidateApiKeys(explicitKey?: string): string[] {
+  const candidates: string[] = [];
+  const add = (k?: string) => {
+    if (k && typeof k === 'string') {
+      const clean = k.trim();
+      if (clean && clean !== 'undefined' && clean !== 'null' && !candidates.includes(clean)) {
+        candidates.push(clean);
+      }
+    }
+  };
+
+  add(explicitKey);
+  add(userSessionApiKey);
+  add(process.env.GEMINI_API_KEY);
+  add(process.env.GOOGLE_API_KEY);
+  add(process.env.VITE_GEMINI_API_KEY);
+
+  return candidates;
+}
+
 function resolveApiKey(explicitKey?: string): string {
-  if (explicitKey && typeof explicitKey === 'string' && explicitKey.trim() && explicitKey.trim() !== 'undefined' && explicitKey.trim() !== 'null') {
-    return explicitKey.trim();
-  }
-  if (userSessionApiKey && userSessionApiKey.trim()) {
-    return userSessionApiKey.trim();
-  }
-  return (
-    process.env.GEMINI_API_KEY ||
-    process.env.GOOGLE_API_KEY ||
-    process.env.VITE_GEMINI_API_KEY ||
-    ''
-  );
+  const candidates = resolveCandidateApiKeys(explicitKey);
+  return candidates[0] || '';
 }
 
 function getApiKey(overrideKey?: string): string {
@@ -404,13 +414,13 @@ function normalizeContents(contents: any): any[] {
   return [{ role: 'user', parts: [{ text: String(contents) }] }];
 }
 
-// Direct REST helper using X-goog-api-key header to prevent SDK Authorization Bearer injection issues
+// Direct REST helper with multi-version fallback
 async function callGeminiREST(model: string, contents: any, config?: any, apiKeyOverride?: string) {
-  const apiKey = resolveApiKey(apiKeyOverride);
-  if (!apiKey) {
+  const candidateKeys = resolveCandidateApiKeys(apiKeyOverride);
+  if (candidateKeys.length === 0) {
     throw new Error('Google Gemini API key or session token is missing or expired. Please enter a valid Gemini API key.');
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+
   const body: any = { contents: normalizeContents(contents) };
   if (config) {
     if (config.systemInstruction) {
@@ -430,35 +440,60 @@ async function callGeminiREST(model: string, contents: any, config?: any, apiKey
     }
   }
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-goog-api-key': apiKey,
-    },
-    body: JSON.stringify(body),
-  });
+  const apiVersions = ['v1alpha', 'v1beta'];
+  let lastErr: any = null;
 
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error?.message || `Gemini API error status ${res.status}`);
+  for (const apiKey of candidateKeys) {
+    for (const apiVer of apiVersions) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error?.message || `Gemini API error status ${res.status}`);
+        }
+
+        const candidate = data.candidates?.[0];
+        const text = candidate?.content?.parts?.map((p: any) => p.text).join('') || '';
+        return {
+          text,
+          candidates: data.candidates,
+          usageMetadata: data.usageMetadata,
+        };
+      } catch (err: any) {
+        lastErr = err;
+        const msg = String(err?.message || '');
+        // If authentication credential issue on this key, break to try next candidate key
+        if (
+          msg.includes('401') ||
+          msg.includes('UNAUTHENTICATED') ||
+          msg.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
+          msg.includes('invalid authentication credentials')
+        ) {
+          break;
+        }
+        continue;
+      }
+    }
   }
 
-  const candidate = data.candidates?.[0];
-  const text = candidate?.content?.parts?.map((p: any) => p.text).join('') || '';
-  return {
-    text,
-    candidates: data.candidates,
-    usageMetadata: data.usageMetadata,
-  };
+  throw lastErr;
 }
 
 async function* callGeminiStreamREST(model: string, contents: any, config?: any, apiKeyOverride?: string) {
-  const apiKey = resolveApiKey(apiKeyOverride);
-  if (!apiKey) {
+  const candidateKeys = resolveCandidateApiKeys(apiKeyOverride);
+  if (candidateKeys.length === 0) {
     throw new Error('Google Gemini API key or session token is missing or expired. Please enter a valid Gemini API key.');
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
+
   const body: any = { contents: normalizeContents(contents) };
   if (config) {
     if (config.systemInstruction) {
@@ -478,18 +513,48 @@ async function* callGeminiStreamREST(model: string, contents: any, config?: any,
     }
   }
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-goog-api-key': apiKey,
-    },
-    body: JSON.stringify(body),
-  });
+  const apiVersions = ['v1alpha', 'v1beta'];
+  let res: any = null;
+  let lastErr: any = null;
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(errText || `Gemini API error status ${res.status}`);
+  for (const apiKey of candidateKeys) {
+    for (const apiVer of apiVersions) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/${apiVer}/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(apiKey)}`;
+        const attemptRes = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey,
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (attemptRes.ok) {
+          res = attemptRes;
+          break;
+        } else {
+          const errText = await attemptRes.text();
+          lastErr = new Error(errText || `Gemini API error status ${attemptRes.status}`);
+          const msg = String(lastErr.message || '');
+          if (
+            msg.includes('401') ||
+            msg.includes('UNAUTHENTICATED') ||
+            msg.includes('ACCESS_TOKEN_TYPE_UNSUPPORTED') ||
+            msg.includes('invalid authentication credentials')
+          ) {
+            break;
+          }
+        }
+      } catch (err: any) {
+        lastErr = err;
+      }
+    }
+    if (res && res.ok) break;
+  }
+
+  if (!res || !res.ok) {
+    throw lastErr || new Error('Failed to connect to Gemini stream');
   }
 
   const reader = res.body?.getReader();
@@ -1025,16 +1090,8 @@ Return only JSON.`;
       rating: parsed,
     });
   } catch (error: any) {
-    console.warn('Live vision model encountered error, activating resilient Cinematic Vision engine:', error?.message);
-    const fallbackParsed = generateFallbackShotRating(
-      (req.body?.imageBase64 || '').replace(/^data:image\/\w+;base64,/, ''),
-      req.body?.mimeType || 'image/jpeg',
-      req.body?.userNotes || '',
-      req.body?.tier || 'constructive'
-    );
-    return res.json({
-      rating: fallbackParsed,
-    });
+    console.error('Shot rater API error:', error?.message || error);
+    return handleApiError(res, error);
   }
 });
 
@@ -1233,18 +1290,8 @@ Return only JSON.`;
       return res.json({ result: parsed, mode: 'cowrite' });
     }
   } catch (error: any) {
-    console.warn('Live script lab encountered error, activating resilient Screenplay engine:', error?.message);
-    const fallbackParsed = generateFallbackScriptLab(
-      req.body?.mode || 'critique',
-      req.body?.content || '',
-      req.body?.genre || 'Drama',
-      req.body?.logline || '',
-      req.body?.budget || 'Micro-Budget ($10k - $100k)'
-    );
-    return res.json({
-      result: fallbackParsed,
-      mode: req.body?.mode || 'critique',
-    });
+    console.error('Script lab API error:', error?.message || error);
+    return handleApiError(res, error);
   }
 });
 

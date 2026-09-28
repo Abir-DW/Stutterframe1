@@ -1,5 +1,5 @@
 import React from 'react';
-import { Film, Clapperboard, Camera, FileText, ShoppingBag, Scissors, MessageSquare, Info, Settings, HelpCircle } from 'lucide-react';
+import { Film, Clapperboard, Camera, FileText, ShoppingBag, Scissors, MessageSquare, Info, Settings, HelpCircle, Layers } from 'lucide-react';
 import { ThemeSwitcher } from './ThemeSwitcher';
 import { useSettings } from '../context/SettingsContext';
 
@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
   openAssistant,
   openAbout,
 }) => {
-  const { openSettings, triggerPageChangeEffect } = useSettings();
+  const { openSettings, uiStyle, triggerPageChangeEffect } = useSettings();
 
   const navItems = [
     { id: 'movie-picker', label: 'Movie Picker', icon: Film },
@@ -76,6 +76,49 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Action: Theme Switcher, Settings, About & Assistant */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          {/* UI Architecture Switcher Quick Trigger */}
+          <button
+            onClick={() => openSettings('ui-style')}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900/90 border border-zinc-800 hover:border-amber-500/50 text-xs font-mono text-zinc-300 hover:text-amber-400 transition-all cursor-pointer active:scale-95 touch-manipulation"
+            title="Switch UI Architecture (Apple Glass, Blade Runner, Budapest, 2001, Matrix, Classic)"
+            aria-label="UI Architecture Style"
+          >
+            <Layers className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden xl:inline text-[11px] font-mono text-zinc-300 capitalize">
+              {uiStyle === 'default'
+                ? 'Classic UI'
+                : uiStyle === 'godfather'
+                ? 'Godfather'
+                : uiStyle === 'batman'
+                ? 'Batman'
+                : uiStyle === 'interstellar'
+                ? 'Interstellar'
+                : uiStyle === 'train-to-busan'
+                ? 'Train to Busan'
+                : uiStyle === 'obsession'
+                ? 'Obsession'
+                : uiStyle === 'dune'
+                ? 'Dune'
+                : uiStyle === 'avatar'
+                ? 'Avatar'
+                : uiStyle === 'resident-evil'
+                ? 'Resident Evil'
+                : uiStyle === 'backrooms'
+                ? 'Backrooms'
+                : uiStyle === 'hollywood-1969'
+                ? 'Hollywood 1969'
+                : uiStyle === 'blade-runner'
+                ? 'Blade Runner'
+                : uiStyle === 'apple-glass'
+                ? 'Apple Glass'
+                : uiStyle === 'grand-budapest'
+                ? 'Budapest'
+                : uiStyle === 'kubrick-space'
+                ? '2001 Space'
+                : 'Matrix Code'}
+            </span>
+          </button>
+
           {/* Theme Palette Switcher */}
           <ThemeSwitcher />
 

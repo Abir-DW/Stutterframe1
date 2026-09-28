@@ -256,7 +256,7 @@ export const ShotRater: React.FC = () => {
         serverError = networkErr;
       }
 
-      // If backend failed (e.g. 500 on Vercel cold-start or network issue), seamlessly use client direct engine or cinematic fallback
+      // If backend failed (e.g. network issue), seamlessly use client direct engine
       if (!ratingResult) {
         try {
           ratingResult = await directAnalyzeShot({
@@ -266,14 +266,7 @@ export const ShotRater: React.FC = () => {
             tier,
           });
         } catch (directErr: any) {
-          console.warn('Direct vision model call failed, activating resilient cinematic vision engine:', directErr);
-          const fallback = generateFallbackShotRating(
-            imagePreview.replace(/^data:image\/\w+;base64,/, ''),
-            mimeType,
-            filmmakerNote,
-            tier
-          );
-          ratingResult = fallback as ShotRatingResult;
+          throw serverError || directErr || new Error('Could not analyze still frame. Please try again.');
         }
       }
 

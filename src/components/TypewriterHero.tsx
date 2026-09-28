@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSettings } from '../context/SettingsContext';
 
 interface TypewriterHeroProps {
   text?: string;
@@ -9,6 +10,7 @@ export const TypewriterHero: React.FC<TypewriterHeroProps> = ({
   text = 'A CINEMATIC TOOLKIT FOR FILMMAKERS & STORYTELLERS.',
   subtext = 'LIVE SEARCH-GROUNDED RESEARCH, COMPUTER VISION SHOT ANALYSIS, SCRIPT DOCTORING & REAL GEAR LOGISTICS.',
 }) => {
+  const { uiStyle } = useSettings();
   const [displayText, setDisplayText] = useState('');
   const [isDone, setIsDone] = useState(false);
 
@@ -62,19 +64,80 @@ export const TypewriterHero: React.FC<TypewriterHeroProps> = ({
     };
   }, [text]);
 
+  // Determine dynamic styling based on active UI theme
+  const getHeroHeadingClass = () => {
+    switch (uiStyle) {
+      case 'godfather':
+        return 'godfather-blood-text font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight';
+      case 'matrix-code':
+        return 'matrix-glitch-text font-mono text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-emerald-400';
+      case 'batman':
+        return 'batman-hero-text text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-wider';
+      case 'interstellar':
+        return 'interstellar-hero-text text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-widest text-sky-100';
+      case 'train-to-busan':
+        return 'busan-hero-text text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-wide text-zinc-200';
+      case 'obsession':
+        return 'obsession-hero-text text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white';
+      case 'dune':
+        return 'font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-[0.2em] text-amber-500 uppercase';
+      case 'avatar':
+        return 'text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-widest text-cyan-300';
+      default:
+        return 'font-courier text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white';
+    }
+  };
+
+  const getCursorColor = () => {
+    switch (uiStyle) {
+      case 'godfather':
+        return 'bg-red-600';
+      case 'batman':
+        return 'bg-orange-500';
+      case 'matrix-code':
+        return 'bg-emerald-400';
+      case 'interstellar':
+        return 'bg-sky-400';
+      case 'train-to-busan':
+        return 'bg-red-700';
+      case 'obsession':
+        return 'bg-rose-500';
+      case 'avatar':
+        return 'bg-cyan-400';
+      default:
+        return 'bg-amber-400';
+    }
+  };
+
   return (
     <div className="text-center max-w-4xl mx-auto px-4 py-8">
-      {/* Film Slate / Scene Marker Tag */}
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs tracking-widest font-mono uppercase mb-6 shadow-sm">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-        SCENE 01 / TAKE 01 &bull; 24FPS
+      {/* Film Slate / Scene Marker Tag without encapsulating box */}
+      <div className="inline-flex items-center gap-2 text-amber-400 text-xs tracking-widest font-mono uppercase mb-6">
+        <span className={`w-1.5 h-1.5 rounded-full ${getCursorColor()} animate-pulse`}></span>
+        <span>
+          {uiStyle === 'godfather'
+            ? 'CORLEONE ARCHIVE • 1945'
+            : uiStyle === 'batman'
+            ? 'WAYNE TACTICAL HUD • GOTHAM'
+            : uiStyle === 'interstellar'
+            ? 'ENDURANCE MISSION • T-MINUS 0'
+            : uiStyle === 'train-to-busan'
+            ? 'KTX 101 OUTBREAK LOG • SEOUL'
+            : uiStyle === 'obsession'
+            ? 'PSYCHOLOGICAL SURVEILLANCE • FEED 04'
+            : uiStyle === 'matrix-code'
+            ? 'CONSTRUCT FEED • VER 2.0.4'
+            : 'SCENE 01 / TAKE 01 • 24FPS'}
+        </span>
       </div>
 
-      {/* Main Typewriter Heading */}
-      <h1 className="font-courier text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6 leading-tight min-h-[3.2em] sm:min-h-[2.6em] flex items-center justify-center">
-        <span>
-          {displayText}
-          <span className="inline-block w-2.5 sm:w-3.5 h-6 sm:h-9 bg-amber-400 ml-1 translate-y-1 animate-pulse" />
+      {/* Main Typewriter Heading with Dynamic Animation */}
+      <h1 className={`${getHeroHeadingClass()} mb-6 leading-tight min-h-[3.2em] sm:min-h-[2.6em] flex items-center justify-center`}>
+        <span className="relative inline-flex items-center justify-center flex-wrap">
+          <span className={uiStyle === 'godfather' ? 'godfather-blood-puddle-text' : ''}>
+            {displayText}
+          </span>
+          <span className={`inline-block w-2.5 sm:w-3.5 h-6 sm:h-9 ${getCursorColor()} ml-1 translate-y-1 animate-pulse shrink-0`} />
         </span>
       </h1>
 

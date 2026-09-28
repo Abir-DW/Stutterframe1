@@ -16,6 +16,7 @@ import { AssistantDrawer } from './components/AssistantDrawer';
 import { AboutModal } from './components/AboutModal';
 import { SettingsModal } from './components/SettingsModal';
 import { CustomCursor } from './components/CustomCursor';
+import { UIStyleBackdrop } from './components/UIStyleBackdrop';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { Settings } from 'lucide-react';
 
@@ -71,7 +72,10 @@ function AppContent() {
       {/* 2. Cinematic Soft Vignette */}
       <div className="cinema-vignette" />
 
-      {/* 3. Custom PC Cinematic Cursor (Camera with flash, Slate with clap, or Default) */}
+      {/* 3. Dynamic UI Style Architecture Backdrop & Particles */}
+      <UIStyleBackdrop currentRoute={currentRoute} />
+
+      {/* 4. Custom PC Cinematic Cursor (Camera with flash, Slate with clap, or Default) */}
       <CustomCursor />
 
       {/* Sticky Header with wordmark, themes, and tools */}
@@ -121,14 +125,14 @@ function AppContent() {
             <span>&bull;</span>
             <button
               onClick={() => openSettings('credits')}
-              className="text-amber-400/90 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer"
+              className="text-amber-400/90 hover:text-amber-300 underline underline-offset-2 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none"
             >
               Credits &amp; Director
             </button>
             <span>&bull;</span>
             <button
               onClick={() => openSettings('cursor')}
-              className="text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1"
+              className="text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1 border-0 bg-transparent p-0 shadow-none outline-none"
             >
               <Settings className="w-3 h-3" />
               <span>Preferences (Cursor &amp; Theme)</span>
@@ -138,49 +142,49 @@ function AppContent() {
           <div className="flex flex-wrap items-center justify-center gap-4">
             <button
               onClick={(e) => navigate('home', { x: e.clientX, y: e.clientY })}
-              className="hover:text-amber-400 transition-colors cursor-pointer"
+              className="hover:text-amber-400 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none"
             >
               Home
             </button>
             <button
               onClick={(e) => navigate('movie-picker', { x: e.clientX, y: e.clientY })}
-              className="hover:text-amber-400 transition-colors cursor-pointer"
+              className="hover:text-amber-400 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none"
             >
               Movie Picker
             </button>
             <button
               onClick={(e) => navigate('shot-rater', { x: e.clientX, y: e.clientY })}
-              className="hover:text-amber-400 transition-colors cursor-pointer"
+              className="hover:text-amber-400 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none"
             >
               Shot Rater
             </button>
             <button
               onClick={(e) => navigate('script-lab', { x: e.clientX, y: e.clientY })}
-              className="hover:text-amber-400 transition-colors cursor-pointer"
+              className="hover:text-amber-400 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none"
             >
               Script Lab
             </button>
             <button
               onClick={(e) => navigate('gear-suggestor', { x: e.clientX, y: e.clientY })}
-              className="hover:text-amber-400 transition-colors cursor-pointer"
+              className="hover:text-amber-400 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none"
             >
               Gear Suggestor
             </button>
             <button
               onClick={(e) => navigate('editor-advisor', { x: e.clientX, y: e.clientY })}
-              className="hover:text-amber-400 transition-colors cursor-pointer"
+              className="hover:text-amber-400 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none"
             >
               Editing Help
             </button>
             <button
               onClick={(e) => navigate('faq', { x: e.clientX, y: e.clientY })}
-              className="hover:text-amber-400 transition-colors cursor-pointer"
+              className="hover:text-amber-400 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none"
             >
               FAQ &amp; Vault
             </button>
             <button
               onClick={() => openSettings('credits')}
-              className="text-amber-400 hover:text-amber-300 transition-colors cursor-pointer font-bold"
+              className="text-amber-400 hover:text-amber-300 transition-colors cursor-pointer font-bold border-0 bg-transparent p-0 shadow-none outline-none"
             >
               About
             </button>

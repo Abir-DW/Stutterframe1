@@ -585,3 +585,729 @@ html.has-custom-cursor .cursor-pointer {
 .animate-slateMicroSnap {
   animation: slateMicroSnap 0.22s ease-out forwards;
 }
+
+/* =========================================================================
+   UI ARCHITECTURE & DESIGN SYSTEM ARCHETYPES
+   (Switchable distinct visual styles inspired by cinema & design icons)
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1. CUPERTINO STUDIO GLASS (Apple-inspired Frosted Glassmorphism & Minimalist)
+   ------------------------------------------------------------------------- */
+[data-ui-style="apple-glass"] {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif !important;
+}
+
+[data-ui-style="apple-glass"] h1,
+[data-ui-style="apple-glass"] h2,
+[data-ui-style="apple-glass"] h3,
+[data-ui-style="apple-glass"] .font-courier {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif !important;
+  letter-spacing: -0.025em !important;
+  font-weight: 700 !important;
+}
+
+[data-ui-style="apple-glass"] .film-grain {
+  opacity: 0.12 !important;
+}
+
+[data-ui-style="apple-glass"] .bg-zinc-950,
+[data-ui-style="apple-glass"] .bg-zinc-950\/80,
+[data-ui-style="apple-glass"] .bg-zinc-900,
+[data-ui-style="apple-glass"] .bg-zinc-900\/60,
+[data-ui-style="apple-glass"] .bg-zinc-900\/70,
+[data-ui-style="apple-glass"] .bg-zinc-900\/80,
+[data-ui-style="apple-glass"] .bg-zinc-900\/90,
+[data-ui-style="apple-glass"] .bg-\[\#0c0c0f\],
+[data-ui-style="apple-glass"] .bg-\[\#0d0d10\] {
+  background-color: rgba(18, 18, 24, 0.6) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-ui-style="apple-glass"] .rounded-2xl {
+  border-radius: 1.5rem !important;
+}
+
+[data-ui-style="apple-glass"] .rounded-xl {
+  border-radius: 1rem !important;
+}
+
+[data-ui-style="apple-glass"] .border-zinc-800,
+[data-ui-style="apple-glass"] .border-zinc-700 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* -------------------------------------------------------------------------
+   2. BLADE RUNNER 2049 (Cyber Neo-Brutalism & Monolithic Raw Angles)
+   ------------------------------------------------------------------------- */
+[data-ui-style="blade-runner"] {
+  font-family: "Chakra Petch", "JetBrains Mono", monospace !important;
+}
+
+[data-ui-style="blade-runner"] h1,
+[data-ui-style="blade-runner"] h2,
+[data-ui-style="blade-runner"] h3,
+[data-ui-style="blade-runner"] .font-courier {
+  font-family: "Orbitron", sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  font-weight: 900 !important;
+  color: #f97316 !important;
+  text-shadow: 0 0 14px rgba(249, 115, 22, 0.6) !important;
+}
+
+[data-ui-style="blade-runner"] .rounded-2xl,
+[data-ui-style="blade-runner"] .rounded-xl,
+[data-ui-style="blade-runner"] .btn-action {
+  border-radius: 0px !important;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)) !important;
+}
+
+[data-ui-style="blade-runner"] .bg-zinc-950,
+[data-ui-style="blade-runner"] .bg-zinc-950\/80,
+[data-ui-style="blade-runner"] .bg-zinc-900 {
+  background-color: #0c0a09 !important;
+  border-width: 2px !important;
+  border-color: rgba(249, 115, 22, 0.5) !important;
+  box-shadow: 4px 4px 0px rgba(249, 115, 22, 0.3) !important;
+}
+
+[data-ui-style="blade-runner"] .border-zinc-800,
+[data-ui-style="blade-runner"] .border-zinc-700 {
+  border-color: rgba(249, 115, 22, 0.35) !important;
+}
+
+/* -------------------------------------------------------------------------
+   3. THE GODFATHER (Victorian Gothic Mafia Noir - Red & White Theme)
+   ------------------------------------------------------------------------- */
+@keyframes bloodPuddleInText {
+  0% {
+    background-position: 0% 92%;
+  }
+  50% {
+    background-position: 100% 64%;
+  }
+  100% {
+    background-position: 0% 92%;
+  }
+}
+
+.godfather-blood-text {
+  font-family: "Cinzel Decorative", "Playfair Display", Georgia, serif !important;
+  letter-spacing: 0.04em !important;
+}
+
+.godfather-blood-puddle-text,
+.godfather-blood-text .godfather-blood-puddle-text {
+  font-family: "Cinzel Decorative", "Playfair Display", Georgia, serif !important;
+  display: inline-block !important;
+  background: linear-gradient(
+    178deg,
+    #ffffff 0%,
+    #f8fafc 34%,
+    #fecaca 42%,
+    #ef4444 47%,
+    #dc2626 53%,
+    #991b1b 68%,
+    #7f1d1d 84%,
+    #450a0a 100%
+  ) !important;
+  background-size: 200% 200% !important;
+  background-position: 0% 88% !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 2px 8px rgba(185, 28, 28, 0.55)) !important;
+  animation: bloodPuddleInText 7s ease-in-out infinite alternate !important;
+}
+
+[data-ui-style="godfather"] {
+  font-family: "Playfair Display", Georgia, serif !important;
+  color: #f4f4f5 !important;
+}
+
+[data-ui-style="godfather"] h1,
+[data-ui-style="godfather"] h2,
+[data-ui-style="godfather"] h3,
+[data-ui-style="godfather"] .font-courier {
+  font-family: "Cinzel Decorative", "Playfair Display", serif !important;
+  letter-spacing: 0.05em !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  text-shadow: 0 2px 14px rgba(185, 28, 28, 0.7) !important;
+}
+
+[data-ui-style="godfather"] .rounded-xl,
+[data-ui-style="godfather"] .rounded-2xl {
+  border-radius: 4px !important;
+  border: 1.5px solid #dc2626 !important;
+  box-shadow: inset 0 0 10px rgba(220, 38, 38, 0.25), 0 4px 15px rgba(0, 0, 0, 0.85) !important;
+}
+
+[data-ui-style="godfather"] .bg-zinc-950,
+[data-ui-style="godfather"] .bg-zinc-950\/80,
+[data-ui-style="godfather"] .bg-zinc-900 {
+  background: linear-gradient(180deg, #18090a 0%, #0a0405 100%) !important;
+  border-color: #991b1b !important;
+}
+
+[data-ui-style="godfather"] .text-amber-400,
+[data-ui-style="godfather"] .text-amber-500 {
+  color: #ef4444 !important;
+}
+
+[data-ui-style="godfather"] .bg-amber-400,
+[data-ui-style="godfather"] .bg-amber-500 {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+[data-ui-style="godfather"] .border-amber-400,
+[data-ui-style="godfather"] .border-amber-500 {
+  border-color: #b91c1c !important;
+}
+
+/* -------------------------------------------------------------------------
+   6. THE BATMAN: DARK KNIGHT (League Gothic & Red/Orange/White Theme)
+   ------------------------------------------------------------------------- */
+.batman-hero-text {
+  font-family: "League Gothic", "Bebas Neue", sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 16px rgba(249, 115, 22, 0.65), 0 2px 6px rgba(0, 0, 0, 0.95) !important;
+}
+
+[data-ui-style="batman"] {
+  font-family: "Oswald", "League Gothic", sans-serif !important;
+  letter-spacing: 0.04em !important;
+}
+
+[data-ui-style="batman"] h1,
+[data-ui-style="batman"] h2,
+[data-ui-style="batman"] h3,
+[data-ui-style="batman"] .font-courier {
+  font-family: "League Gothic", "Bebas Neue", sans-serif !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  font-size: 1.25em !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 14px rgba(249, 115, 22, 0.6) !important;
+}
+
+[data-ui-style="batman"] .rounded-xl,
+[data-ui-style="batman"] .rounded-2xl {
+  border-radius: 0px !important;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)) !important;
+}
+
+[data-ui-style="batman"] .bg-zinc-950,
+[data-ui-style="batman"] .bg-zinc-950\/80,
+[data-ui-style="batman"] .bg-zinc-900 {
+  background-color: #080607 !important;
+  border: 2px solid #3f3f46 !important;
+  border-left: 4px solid #f97316 !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.9) !important;
+}
+
+[data-ui-style="batman"] .text-amber-400,
+[data-ui-style="batman"] .text-amber-500 {
+  color: #f97316 !important;
+}
+
+[data-ui-style="batman"] .bg-amber-400,
+[data-ui-style="batman"] .bg-amber-500 {
+  background-color: #ea580c !important;
+  color: #ffffff !important;
+}
+
+[data-ui-style="batman"] .border-amber-400,
+[data-ui-style="batman"] .border-amber-500 {
+  border-color: #ea580c !important;
+}
+
+/* -------------------------------------------------------------------------
+   9. ONCE UPON A TIME IN HOLLYWOOD (1969 Retro - Clean borders without text overlap)
+   ------------------------------------------------------------------------- */
+[data-ui-style="hollywood-1969"] {
+  font-family: "Plus Jakarta Sans", sans-serif !important;
+}
+
+[data-ui-style="hollywood-1969"] h1,
+[data-ui-style="hollywood-1969"] h2,
+[data-ui-style="hollywood-1969"] h3,
+[data-ui-style="hollywood-1969"] .font-courier {
+  font-family: "Righteous", cursive, sans-serif !important;
+  letter-spacing: 0.05em !important;
+  color: #fbbf24 !important;
+  text-shadow: 2px 2px 0px #b45309, 4px 4px 0px #78350f !important;
+}
+
+[data-ui-style="hollywood-1969"] .rounded-2xl {
+  border-radius: 1.25rem !important;
+  border: 2px solid #f59e0b !important;
+}
+
+[data-ui-style="hollywood-1969"] .rounded-xl {
+  border-radius: 0.75rem !important;
+  border: 1.5px solid rgba(245, 158, 11, 0.6) !important;
+}
+
+[data-ui-style="hollywood-1969"] .btn-action {
+  box-sizing: border-box !important;
+  border-radius: 0.6rem !important;
+}
+
+[data-ui-style="hollywood-1969"] .bg-zinc-950,
+[data-ui-style="hollywood-1969"] .bg-zinc-950\/80,
+[data-ui-style="hollywood-1969"] .bg-zinc-900 {
+  background-color: #130d06 !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* -------------------------------------------------------------------------
+   10. THE MATRIX (Phosphor Cyber Terminal & Glitch Text)
+   ------------------------------------------------------------------------- */
+@keyframes matrixTextGlitch {
+  0% {
+    transform: translate(0);
+    text-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+  }
+  20% {
+    transform: translate(-1.5px, 1px);
+    text-shadow: 2px 0 #06b6d4, -2px 0 #10b981;
+  }
+  40% {
+    transform: translate(1px, -1px);
+    text-shadow: -2px 0 #34d399, 2px 0 #047857;
+  }
+  60% {
+    transform: translate(-0.5px, -0.5px);
+    text-shadow: 1px 0 #10b981, -1px 0 #06b6d4;
+  }
+  80% {
+    transform: translate(1.5px, 0.5px);
+    text-shadow: -1px 0 #10b981, 1px 0 #34d399;
+  }
+  100% {
+    transform: translate(0);
+    text-shadow: 0 0 8px rgba(52, 211, 153, 0.8);
+  }
+}
+
+.matrix-glitch-text {
+  font-family: "Share Tech Mono", monospace !important;
+  animation: matrixTextGlitch 2.5s infinite;
+  color: #34d399 !important;
+  letter-spacing: 0.05em !important;
+}
+
+[data-ui-style="matrix-code"] {
+  font-family: "Share Tech Mono", monospace !important;
+}
+
+[data-ui-style="matrix-code"] h1,
+[data-ui-style="matrix-code"] h2,
+[data-ui-style="matrix-code"] h3,
+[data-ui-style="matrix-code"] .font-courier {
+  font-family: "Share Tech Mono", monospace !important;
+  color: #34d399 !important;
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.8) !important;
+}
+
+[data-ui-style="matrix-code"] .rounded-xl,
+[data-ui-style="matrix-code"] .rounded-2xl {
+  border-radius: 3px !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.6) !important;
+}
+
+[data-ui-style="matrix-code"] .bg-zinc-950,
+[data-ui-style="matrix-code"] .bg-zinc-950\/80,
+[data-ui-style="matrix-code"] .bg-zinc-900 {
+  background-color: rgba(2, 8, 4, 0.9) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* -------------------------------------------------------------------------
+   11. INTERSTELLAR (Endurance Deep Space & Accretion Shimmer)
+   ------------------------------------------------------------------------- */
+.interstellar-hero-text {
+  font-family: "Audiowide", "Michroma", sans-serif !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(135deg, #ffffff 0%, #bae6fd 50%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px rgba(56, 189, 248, 0.65));
+}
+
+[data-ui-style="interstellar"] {
+  font-family: "Michroma", "Plus Jakarta Sans", sans-serif !important;
+}
+
+[data-ui-style="interstellar"] h1,
+[data-ui-style="interstellar"] h2,
+[data-ui-style="interstellar"] h3,
+[data-ui-style="interstellar"] .font-courier {
+  font-family: "Audiowide", sans-serif !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: #e0f2fe !important;
+  text-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
+}
+
+[data-ui-style="interstellar"] .rounded-xl,
+[data-ui-style="interstellar"] .rounded-2xl {
+  border-radius: 4px !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.15) !important;
+}
+
+[data-ui-style="interstellar"] .bg-zinc-950,
+[data-ui-style="interstellar"] .bg-zinc-950\/80,
+[data-ui-style="interstellar"] .bg-zinc-900 {
+  background-color: #020306 !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+[data-ui-style="interstellar"] .text-amber-400,
+[data-ui-style="interstellar"] .text-amber-500 {
+  color: #38bdf8 !important;
+}
+
+[data-ui-style="interstellar"] .bg-amber-400,
+[data-ui-style="interstellar"] .bg-amber-500 {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+/* -------------------------------------------------------------------------
+   12. TRAIN TO BUSAN (Muted Biohazard Horror & Railyard Distress)
+   ------------------------------------------------------------------------- */
+.busan-hero-text {
+  font-family: "Rubik Glitch", "Special Elite", monospace !important;
+  letter-spacing: 0.08em !important;
+  color: #e2e8f0 !important;
+  text-shadow: 2px 2px 0px #881337, 4px 4px 0px #4c0519 !important;
+}
+
+[data-ui-style="train-to-busan"] {
+  font-family: "Special Elite", monospace !important;
+  color: #cbd5e1 !important;
+}
+
+[data-ui-style="train-to-busan"] h1,
+[data-ui-style="train-to-busan"] h2,
+[data-ui-style="train-to-busan"] h3,
+[data-ui-style="train-to-busan"] .font-courier {
+  font-family: "Special Elite", "Black Ops One", monospace !important;
+  letter-spacing: 0.06em !important;
+  color: #e2e8f0 !important;
+  text-shadow: 2px 2px 0px #881337 !important;
+}
+
+[data-ui-style="train-to-busan"] .rounded-xl,
+[data-ui-style="train-to-busan"] .rounded-2xl {
+  border-radius: 2px !important;
+  border: 1.5px solid #57534e !important;
+  border-bottom: 3px solid #881337 !important;
+}
+
+[data-ui-style="train-to-busan"] .bg-zinc-950,
+[data-ui-style="train-to-busan"] .bg-zinc-950\/80,
+[data-ui-style="train-to-busan"] .bg-zinc-900 {
+  background-color: #101010 !important;
+  border-color: #44403c !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-ui-style="train-to-busan"] .text-amber-400,
+[data-ui-style="train-to-busan"] .text-amber-500 {
+  color: #9f1239 !important;
+}
+
+[data-ui-style="train-to-busan"] .bg-amber-400,
+[data-ui-style="train-to-busan"] .bg-amber-500 {
+  background-color: #881337 !important;
+  color: #ffffff !important;
+}
+
+/* -------------------------------------------------------------------------
+   13. OBSESSION (Psychological Vertigo Noir & Analog TV Static)
+   ------------------------------------------------------------------------- */
+.obsession-hero-text {
+  font-family: "Cinzel Decorative", "Playfair Display", serif !important;
+  font-style: italic !important;
+  letter-spacing: 0.12em !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.7), 2px 0 0 #e11d48, -2px 0 0 #06b6d4 !important;
+}
+
+[data-ui-style="obsession"] {
+  font-family: "Playfair Display", Georgia, serif !important;
+}
+
+[data-ui-style="obsession"] h1,
+[data-ui-style="obsession"] h2,
+[data-ui-style="obsession"] h3,
+[data-ui-style="obsession"] .font-courier {
+  font-family: "Cinzel Decorative", "Playfair Display", serif !important;
+  letter-spacing: 0.08em !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 12px rgba(225, 29, 72, 0.6) !important;
+}
+
+[data-ui-style="obsession"] .rounded-xl,
+[data-ui-style="obsession"] .rounded-2xl {
+  border-radius: 3px !important;
+  border: 1.5px solid #ffffff !important;
+  box-shadow: 0 0 12px rgba(225, 29, 72, 0.35) !important;
+}
+
+[data-ui-style="obsession"] .bg-zinc-950,
+[data-ui-style="obsession"] .bg-zinc-950\/80,
+[data-ui-style="obsession"] .bg-zinc-900 {
+  background-color: #080608 !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-ui-style="obsession"] .text-amber-400,
+[data-ui-style="obsession"] .text-amber-500 {
+  color: #f43f5e !important;
+}
+
+[data-ui-style="obsession"] .bg-amber-400,
+[data-ui-style="obsession"] .bg-amber-500 {
+  background-color: #e11d48 !important;
+  color: #ffffff !important;
+}
+
+/* -------------------------------------------------------------------------
+   3. THE GRAND BUDAPEST HOTEL (Wes Anderson Maximalism & Editorial Symmetry)
+   ------------------------------------------------------------------------- */
+[data-ui-style="grand-budapest"] {
+  font-family: Georgia, "Times New Roman", serif !important;
+}
+
+[data-ui-style="grand-budapest"] h1,
+[data-ui-style="grand-budapest"] h2,
+[data-ui-style="grand-budapest"] h3,
+[data-ui-style="grand-budapest"] .font-courier {
+  font-family: Georgia, "Playfair Display", serif !important;
+  letter-spacing: 0.04em !important;
+  font-weight: 700 !important;
+}
+
+[data-ui-style="grand-budapest"] .bg-zinc-950,
+[data-ui-style="grand-budapest"] .bg-zinc-950\/80 {
+  background-color: #120c0d !important;
+  border-width: 3px !important;
+  border-style: double !important;
+  border-color: rgba(217, 119, 6, 0.55) !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7) !important;
+  border-radius: 0.6rem !important;
+}
+
+[data-ui-style="grand-budapest"] .rounded-2xl {
+  border-radius: 0.75rem !important;
+}
+
+[data-ui-style="grand-budapest"] .rounded-xl {
+  border-radius: 0.5rem !important;
+}
+
+/* -------------------------------------------------------------------------
+   4. 2001: A SPACE ODYSSEY (Kubrickian Monolith Minimalist)
+   ------------------------------------------------------------------------- */
+[data-ui-style="kubrick-space"] {
+  font-family: system-ui, -apple-system, sans-serif !important;
+}
+
+[data-ui-style="kubrick-space"] h1,
+[data-ui-style="kubrick-space"] h2,
+[data-ui-style="kubrick-space"] h3,
+[data-ui-style="kubrick-space"] .font-courier {
+  font-family: system-ui, sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.18em !important;
+  font-weight: 800 !important;
+}
+
+[data-ui-style="kubrick-space"] .film-grain {
+  opacity: 0.08 !important;
+}
+
+[data-ui-style="kubrick-space"] .rounded-2xl,
+[data-ui-style="kubrick-space"] .rounded-xl,
+[data-ui-style="kubrick-space"] .rounded-lg {
+  border-radius: 2px !important;
+}
+
+[data-ui-style="kubrick-space"] .bg-zinc-950,
+[data-ui-style="kubrick-space"] .bg-zinc-950\/80,
+[data-ui-style="kubrick-space"] .bg-zinc-900 {
+  background-color: #030305 !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: none !important;
+}
+
+/* -------------------------------------------------------------------------
+   5. THE MATRIX (Phosphor Cyber Terminal)
+   ------------------------------------------------------------------------- */
+[data-ui-style="matrix-code"] {
+  font-family: monospace, "Courier New" !important;
+}
+
+[data-ui-style="matrix-code"] h1,
+[data-ui-style="matrix-code"] h2,
+[data-ui-style="matrix-code"] h3,
+[data-ui-style="matrix-code"] .font-courier {
+  font-family: monospace !important;
+  color: #34d399 !important;
+  text-shadow: 0 0 8px rgba(52, 211, 153, 0.6) !important;
+}
+
+[data-ui-style="matrix-code"] .bg-zinc-950,
+[data-ui-style="matrix-code"] .bg-zinc-950\/80,
+[data-ui-style="matrix-code"] .bg-zinc-900 {
+  background-color: rgba(2, 8, 4, 0.88) !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.12), inset 0 0 12px rgba(16, 185, 129, 0.04) !important;
+}
+
+[data-ui-style="matrix-code"] .rounded-2xl,
+[data-ui-style="matrix-code"] .rounded-xl {
+  border-radius: 4px !important;
+}
+
+/* =========================================================================
+   UNIVERSAL CLEAN WORD & TEXT PROTECTION
+   (Ensure words, links, tabs, and buttons are never encapsulated in boxes)
+   ========================================================================= */
+footer button,
+footer a,
+header nav button,
+nav button,
+.no-word-box,
+button.text-link {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+}
+
+/* =========================================================================
+   ANIMATED CUSTOM CURSOR KEYFRAMES
+   (Flapping Gotham bat, revolving cylinder, spinning batarang & spore drift)
+   ========================================================================= */
+@keyframes batPredatorGlide {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  30% {
+    transform: translateY(-2px) rotate(-1.5deg) scale(1.02);
+  }
+  70% {
+    transform: translateY(1.5px) rotate(1.5deg) scale(0.98);
+  }
+}
+
+.animate-batPredatorGlide {
+  animation: batPredatorGlide 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes cylinderRevolve {
+  0% {
+    transform: rotate(0deg);
+  }
+  16% {
+    transform: rotate(60deg);
+  }
+  33% {
+    transform: rotate(120deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  66% {
+    transform: rotate(240deg);
+  }
+  83% {
+    transform: rotate(300deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-cylinderRevolve {
+  animation: cylinderRevolve 3.5s steps(6, end) infinite;
+  transform-origin: center;
+}
+
+@keyframes batarangTacticalSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-batarangTacticalSpin {
+  animation: batarangTacticalSpin 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  transform-origin: center;
+}
+
+@keyframes sporeDrift {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.9));
+  }
+  50% {
+    transform: translateY(-3.5px) scale(1.06);
+    filter: drop-shadow(0 0 16px rgba(192, 132, 252, 0.95));
+  }
+}
+
+.animate-sporeDrift {
+  animation: sporeDrift 2.2s ease-in-out infinite;
+}
+
+@keyframes enduranceStationSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-enduranceStationSpin {
+  animation: enduranceStationSpin 14s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes laserCrosshairPulse {
+  0%, 100% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(0.92);
+  }
+}
+
+.animate-laserCrosshairPulse {
+  animation: laserCrosshairPulse 1.6s ease-in-out infinite;
+}
+
+
