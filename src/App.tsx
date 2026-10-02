@@ -17,6 +17,10 @@ import { AboutModal } from './components/AboutModal';
 import { SettingsModal } from './components/SettingsModal';
 import { CustomCursor } from './components/CustomCursor';
 import { UIStyleBackdrop } from './components/UIStyleBackdrop';
+import { SidebarNav } from './components/SidebarNav';
+import { BottomNavBar } from './components/BottomNavBar';
+import { FloatingIslandNav } from './components/FloatingIslandNav';
+import { CommandCenterModal } from './components/CommandCenterModal';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { Settings } from 'lucide-react';
 
@@ -24,7 +28,7 @@ function AppContent() {
   const [currentRoute, setCurrentRoute] = useState<string>('home');
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const { openSettings, triggerPageChangeEffect } = useSettings();
+  const { openSettings, triggerPageChangeEffect, uiLayout, isSidebarExpanded } = useSettings();
 
   // Sync initial URL path / hash with state
   useEffect(() => {
@@ -64,8 +68,16 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const isSidebarLayout = uiLayout === 'sidebar';
+  const isBottomNavLayout = uiLayout === 'bottom-nav';
+  const isFloatingIslandLayout = uiLayout === 'floating-island';
+
   return (
-    <div className="min-h-screen text-[#f4f4f5] flex flex-col relative selection:bg-amber-500/30 selection:text-amber-200">
+    <div
+      className={`min-h-screen text-[#f4f4f5] flex flex-col relative selection:bg-amber-500/30 selection:text-amber-200 transition-all duration-300 ${
+        isSidebarLayout ? (isSidebarExpanded ? 'lg:pl-64' : 'lg:pl-20') : ''
+      }`}
+    >
       {/* 1. Film Grain Overlay */}
       <div className="film-grain" />
 
@@ -78,6 +90,16 @@ function AppContent() {
       {/* 4. Custom PC Cinematic Cursor (Camera with flash, Slate with clap, or Default) */}
       <CustomCursor />
 
+      {/* 5. Left Film Strip Sidebar Dock (when uiLayout === 'sidebar') */}
+      {isSidebarLayout && (
+        <SidebarNav
+          currentRoute={currentRoute}
+          navigate={(route) => navigate(route)}
+          openAssistant={() => setIsAssistantOpen(true)}
+          openAbout={() => setIsAboutOpen(true)}
+        />
+      )}
+
       {/* Sticky Header with wordmark, themes, and tools */}
       <Header
         currentRoute={currentRoute}
@@ -87,7 +109,11 @@ function AppContent() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 pb-16 pt-2">
+      <main
+        className={`flex-1 pt-2 ${
+          isBottomNavLayout || isFloatingIslandLayout ? 'pb-28' : 'pb-16'
+        }`}
+      >
         {currentRoute === 'home' && <HomeView navigate={(route) => navigate(route)} />}
         {currentRoute === 'movie-picker' && <MoviePicker />}
         {currentRoute === 'shot-rater' && <ShotRater />}
@@ -96,6 +122,32 @@ function AppContent() {
         {currentRoute === 'editor-advisor' && <EditorAdvisor />}
         {currentRoute === 'faq' && <FaqView />}
       </main>
+
+      {/* 6. Pinned Bottom Navigation Bar (when uiLayout === 'bottom-nav') */}
+      {isBottomNavLayout && (
+        <BottomNavBar
+          currentRoute={currentRoute}
+          navigate={(route) => navigate(route)}
+          openAssistant={() => setIsAssistantOpen(true)}
+          openAbout={() => setIsAboutOpen(true)}
+        />
+      )}
+
+      {/* 7. Floating Capsule Dynamic Island (when uiLayout === 'floating-island') */}
+      {isFloatingIslandLayout && (
+        <FloatingIslandNav
+          currentRoute={currentRoute}
+          navigate={(route) => navigate(route)}
+          openAssistant={() => setIsAssistantOpen(true)}
+        />
+      )}
+
+      {/* 8. Command Center HUD Modal (for popup layout and ⌘K shortcut) */}
+      <CommandCenterModal
+        currentRoute={currentRoute}
+        navigate={(route) => navigate(route)}
+        openAssistant={() => setIsAssistantOpen(true)}
+      />
 
       {/* Tool 5: StutterFrame Assistant (Fixed button & drawer on every page) */}
       <AssistantDrawer
@@ -110,7 +162,7 @@ function AppContent() {
         onClose={() => setIsAboutOpen(false)}
       />
 
-      {/* Comprehensive Preferences & Settings Modal (Cursor, Themes, Credits) */}
+      {/* Comprehensive Preferences & Settings Modal (Layouts, Cursor, Themes, Credits) */}
       <SettingsModal />
 
       {/* Minimal Footer */}
@@ -131,11 +183,11 @@ function AppContent() {
             </button>
             <span>&bull;</span>
             <button
-              onClick={() => openSettings('cursor')}
+              onClick={() => openSettings('layout')}
               className="text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1 border-0 bg-transparent p-0 shadow-none outline-none"
             >
               <Settings className="w-3 h-3" />
-              <span>Preferences (Cursor &amp; Theme)</span>
+              <span>Preferences (Layout &amp; Theme)</span>
             </button>
           </div>
 

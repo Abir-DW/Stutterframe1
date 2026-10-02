@@ -330,7 +330,90 @@
   fill: #38bdf8 !important;
 }
 
-/* 8. Customizable Director Palette (Live Dynamic CSS Variables) */
+/* 8. Netflix 1:1 Cinematic Palette (Pitch Black #141414 & Signature Netflix Crimson #e50914) */
+[data-theme="netflix"] {
+  --bg-main: #141414;
+}
+[data-theme="netflix"] body {
+  background-color: #141414 !important;
+}
+[data-theme="netflix"] .text-amber-400,
+[data-theme="netflix"] .text-amber-300,
+[data-theme="netflix"] .text-amber-500 {
+  color: #e50914 !important;
+}
+[data-theme="netflix"] .bg-amber-500,
+[data-theme="netflix"] .bg-amber-400 {
+  background-color: #e50914 !important;
+  color: #ffffff !important;
+}
+[data-theme="netflix"] .bg-gradient-to-r.from-amber-500,
+[data-theme="netflix"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #e50914 0%, #b81d24 100%) !important;
+  color: #ffffff !important;
+}
+[data-theme="netflix"] .border-amber-500,
+[data-theme="netflix"] .border-amber-500\/40,
+[data-theme="netflix"] .border-amber-500\/30,
+[data-theme="netflix"] .border-amber-500\/50,
+[data-theme="netflix"] .border-amber-500\/20,
+[data-theme="netflix"] .border-amber-400 {
+  border-color: rgba(229, 9, 20, 0.5) !important;
+}
+[data-theme="netflix"] .bg-amber-500\/10,
+[data-theme="netflix"] .bg-amber-500\/15,
+[data-theme="netflix"] .bg-amber-500\/20,
+[data-theme="netflix"] .bg-amber-950\/20,
+[data-theme="netflix"] .bg-amber-950\/30 {
+  background-color: rgba(229, 9, 20, 0.15) !important;
+}
+[data-theme="netflix"] .fill-amber-400 {
+  fill: #e50914 !important;
+}
+
+/* 9. Amazon Prime Video 1:1 Palette (Deep Slate Navy #0f172a & Electric Blue #00a8e1) */
+[data-theme="amazon-prime"] {
+  --bg-main: #0f172a;
+}
+[data-theme="amazon-prime"] body {
+  background-color: #0f172a !important;
+}
+[data-theme="amazon-prime"] .text-amber-400,
+[data-theme="amazon-prime"] .text-amber-300,
+[data-theme="amazon-prime"] .text-amber-500 {
+  color: #00a8e1 !important;
+}
+[data-theme="amazon-prime"] .bg-amber-500,
+[data-theme="amazon-prime"] .bg-amber-400 {
+  background-color: #00a8e1 !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+[data-theme="amazon-prime"] .bg-gradient-to-r.from-amber-500,
+[data-theme="amazon-prime"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #00a8e1 0%, #1a98ff 100%) !important;
+  color: #000000 !important;
+}
+[data-theme="amazon-prime"] .border-amber-500,
+[data-theme="amazon-prime"] .border-amber-500\/40,
+[data-theme="amazon-prime"] .border-amber-500\/30,
+[data-theme="amazon-prime"] .border-amber-500\/50,
+[data-theme="amazon-prime"] .border-amber-500\/20,
+[data-theme="amazon-prime"] .border-amber-400 {
+  border-color: rgba(0, 168, 225, 0.45) !important;
+}
+[data-theme="amazon-prime"] .bg-amber-500\/10,
+[data-theme="amazon-prime"] .bg-amber-500\/15,
+[data-theme="amazon-prime"] .bg-amber-500\/20,
+[data-theme="amazon-prime"] .bg-amber-950\/20,
+[data-theme="amazon-prime"] .bg-amber-950\/30 {
+  background-color: rgba(0, 168, 225, 0.12) !important;
+}
+[data-theme="amazon-prime"] .fill-amber-400 {
+  fill: #00a8e1 !important;
+}
+
+/* 11. Customizable Director Palette (Live Dynamic CSS Variables) */
 [data-theme="custom"] body {
   background-color: var(--bg-main) !important;
 }
@@ -388,6 +471,47 @@ button, a {
 
 .animate-fadeIn {
   animation: fadeInScale 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpDrawer {
+  from {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideUp {
+  animation: slideUpDrawer 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideRightDrawer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideRight {
+  animation: slideRightDrawer 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideLeftDrawer {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideLeft {
+  animation: slideLeftDrawer 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Film Grain Overlay with subtle frame-by-frame flicker */
@@ -590,6 +714,199 @@ html.has-custom-cursor .cursor-pointer {
    UI ARCHITECTURE & DESIGN SYSTEM ARCHETYPES
    (Switchable distinct visual styles inspired by cinema & design icons)
    ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   0A. NETFLIX 1:1 CINEMATIC STREAMING PLATFORM
+   (Pitch Black #141414, Bebas Neue bold display, Netflix Crimson #e50914,
+    White solid Play button, translucent grey Info, 3D Top 10 numerals)
+   ------------------------------------------------------------------------- */
+[data-ui-style="netflix"],
+[data-ui-layout="netflix"] {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  color: #e5e5e5 !important;
+  background-color: #141414 !important;
+}
+
+[data-ui-style="netflix"] h1,
+[data-ui-style="netflix"] h2,
+[data-ui-style="netflix"] h3,
+[data-ui-style="netflix"] .font-courier,
+[data-ui-layout="netflix"] h1,
+[data-ui-layout="netflix"] h2,
+[data-ui-layout="netflix"] h3,
+[data-ui-layout="netflix"] .font-courier {
+  font-family: 'Bebas Neue', 'Helvetica Neue', Arial, sans-serif !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+}
+
+[data-ui-style="netflix"] .film-grain,
+[data-ui-layout="netflix"] .film-grain {
+  opacity: 0.05 !important;
+}
+
+[data-ui-style="netflix"] .bg-zinc-950,
+[data-ui-style="netflix"] .bg-zinc-950\/80,
+[data-ui-style="netflix"] .bg-zinc-900,
+[data-ui-style="netflix"] .bg-zinc-900\/60,
+[data-ui-style="netflix"] .bg-zinc-900\/70,
+[data-ui-style="netflix"] .bg-zinc-900\/80,
+[data-ui-style="netflix"] .bg-zinc-900\/90,
+[data-ui-style="netflix"] .bg-\[\#0c0c0f\],
+[data-ui-style="netflix"] .bg-\[\#0d0d10\],
+[data-ui-layout="netflix"] .bg-zinc-950,
+[data-ui-layout="netflix"] .bg-zinc-950\/80,
+[data-ui-layout="netflix"] .bg-zinc-900,
+[data-ui-layout="netflix"] .bg-zinc-900\/60,
+[data-ui-layout="netflix"] .bg-zinc-900\/70,
+[data-ui-layout="netflix"] .bg-zinc-900\/80,
+[data-ui-layout="netflix"] .bg-zinc-900\/90,
+[data-ui-layout="netflix"] .bg-\[\#0c0c0f\],
+[data-ui-layout="netflix"] .bg-\[\#0d0d10\] {
+  background-color: #181818 !important;
+  border-color: #2f2f2f !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-ui-style="netflix"] .rounded-2xl,
+[data-ui-style="netflix"] .rounded-xl,
+[data-ui-layout="netflix"] .rounded-2xl,
+[data-ui-layout="netflix"] .rounded-xl {
+  border-radius: 4px !important;
+}
+
+[data-ui-style="netflix"] .text-amber-400,
+[data-ui-style="netflix"] .text-amber-500,
+[data-ui-layout="netflix"] .text-amber-400,
+[data-ui-layout="netflix"] .text-amber-500 {
+  color: #e50914 !important;
+}
+
+[data-ui-style="netflix"] .bg-amber-400,
+[data-ui-style="netflix"] .bg-amber-500,
+[data-ui-layout="netflix"] .bg-amber-400,
+[data-ui-layout="netflix"] .bg-amber-500 {
+  background-color: #e50914 !important;
+  color: #ffffff !important;
+}
+
+[data-ui-style="netflix"] .border-amber-400,
+[data-ui-style="netflix"] .border-amber-500,
+[data-ui-layout="netflix"] .border-amber-400,
+[data-ui-layout="netflix"] .border-amber-500 {
+  border-color: rgba(229, 9, 20, 0.6) !important;
+}
+
+/* -------------------------------------------------------------------------
+   0B. AMAZON PRIME VIDEO 1:1 CINEMATIC STREAMING PLATFORM
+   (Dark Slate Navy #0f172a / #00050d, Electric Blue #00a8e1,
+    Amazon clean geometry, X-Ray badges, Prime Pill accents)
+   ------------------------------------------------------------------------- */
+[data-ui-style="amazon-prime"],
+[data-ui-layout="amazon-prime"] {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  color: #ffffff !important;
+  background-color: #0f172a !important;
+}
+
+[data-ui-style="amazon-prime"] h1,
+[data-ui-style="amazon-prime"] h2,
+[data-ui-style="amazon-prime"] h3,
+[data-ui-style="amazon-prime"] .font-courier,
+[data-ui-layout="amazon-prime"] h1,
+[data-ui-layout="amazon-prime"] h2,
+[data-ui-layout="amazon-prime"] h3,
+[data-ui-layout="amazon-prime"] .font-courier {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  color: #ffffff !important;
+}
+
+[data-ui-style="amazon-prime"] .film-grain,
+[data-ui-layout="amazon-prime"] .film-grain {
+  opacity: 0.04 !important;
+}
+
+[data-ui-style="amazon-prime"] .bg-zinc-950,
+[data-ui-style="amazon-prime"] .bg-zinc-950\/80,
+[data-ui-style="amazon-prime"] .bg-zinc-900,
+[data-ui-style="amazon-prime"] .bg-zinc-900\/60,
+[data-ui-style="amazon-prime"] .bg-zinc-900\/70,
+[data-ui-style="amazon-prime"] .bg-zinc-900\/80,
+[data-ui-style="amazon-prime"] .bg-zinc-900\/90,
+[data-ui-style="amazon-prime"] .bg-\[\#0c0c0f\],
+[data-ui-style="amazon-prime"] .bg-\[\#0d0d10\],
+[data-ui-layout="amazon-prime"] .bg-zinc-950,
+[data-ui-layout="amazon-prime"] .bg-zinc-950\/80,
+[data-ui-layout="amazon-prime"] .bg-zinc-900,
+[data-ui-layout="amazon-prime"] .bg-zinc-900\/60,
+[data-ui-layout="amazon-prime"] .bg-zinc-900\/70,
+[data-ui-layout="amazon-prime"] .bg-zinc-900\/80,
+[data-ui-layout="amazon-prime"] .bg-zinc-900\/90,
+[data-ui-layout="amazon-prime"] .bg-\[\#0c0c0f\],
+[data-ui-layout="amazon-prime"] .bg-\[\#0d0d10\] {
+  background-color: #1a242f !important;
+  border-color: #273746 !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-ui-style="amazon-prime"] .rounded-2xl,
+[data-ui-style="amazon-prime"] .rounded-xl,
+[data-ui-layout="amazon-prime"] .rounded-2xl,
+[data-ui-layout="amazon-prime"] .rounded-xl {
+  border-radius: 6px !important;
+}
+
+[data-ui-style="amazon-prime"] .text-amber-400,
+[data-ui-style="amazon-prime"] .text-amber-500,
+[data-ui-layout="amazon-prime"] .text-amber-400,
+[data-ui-layout="amazon-prime"] .text-amber-500 {
+  color: #00a8e1 !important;
+}
+
+[data-ui-style="amazon-prime"] .bg-amber-400,
+[data-ui-style="amazon-prime"] .bg-amber-500,
+[data-ui-layout="amazon-prime"] .bg-amber-400,
+[data-ui-layout="amazon-prime"] .bg-amber-500 {
+  background-color: #00a8e1 !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+}
+
+[data-ui-style="amazon-prime"] .border-amber-400,
+[data-ui-style="amazon-prime"] .border-amber-500,
+[data-ui-layout="amazon-prime"] .border-amber-400,
+[data-ui-layout="amazon-prime"] .border-amber-500 {
+  border-color: rgba(0, 168, 225, 0.5) !important;
+}
+
+/* Explicit line-clamp rules for cross-browser reliability */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* -------------------------------------------------------------------------
    1. CUPERTINO STUDIO GLASS (Apple-inspired Frosted Glassmorphism & Minimalist)

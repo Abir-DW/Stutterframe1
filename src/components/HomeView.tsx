@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { TypewriterHero } from './TypewriterHero';
 import { useSettings } from '../context/SettingsContext';
+import { NetflixHome } from './NetflixHome';
+import { PrimeHome } from './PrimeHome';
 
 interface HomeViewProps {
   navigate: (route: string) => void;
@@ -22,7 +24,18 @@ interface HomeViewProps {
 const ENABLE_VHS_BACKDROP = true;
 
 export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
-  const { triggerPageChangeEffect } = useSettings();
+  const { triggerPageChangeEffect, uiLayout, uiStyle } = useSettings();
+
+  // 1:1 Netflix Interface
+  if (uiLayout === 'netflix' || uiStyle === 'netflix') {
+    return <NetflixHome navigate={navigate} />;
+  }
+
+  // 1:1 Amazon Prime Video Interface
+  if (uiLayout === 'amazon-prime' || uiStyle === 'amazon-prime') {
+    return <PrimeHome navigate={navigate} />;
+  }
+
   const tools = [
     {
       id: 'movie-picker',

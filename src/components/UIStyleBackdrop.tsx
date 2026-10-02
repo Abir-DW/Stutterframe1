@@ -663,6 +663,27 @@ export const UIStyleBackdrop: React.FC<UIStyleBackdropProps> = ({ currentRoute }
     );
   }
 
+  // 16. NETFLIX 1:1 CINEMATIC PLATFORM
+  if (uiStyle === 'netflix') {
+    return (
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[450px] rounded-full bg-red-600/10 blur-[160px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#141414]/30 to-[#141414]" />
+      </div>
+    );
+  }
+
+  // 17. AMAZON PRIME VIDEO 1:1 PLATFORM
+  if (uiStyle === 'amazon-prime') {
+    return (
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-32 left-1/3 w-[650px] h-[450px] rounded-full bg-[#00a8e1]/10 blur-[160px]" />
+        <div className="absolute top-1/2 -right-32 w-[550px] h-[450px] rounded-full bg-[#1a98ff]/8 blur-[150px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a]/20 via-transparent to-[#0f172a]" />
+      </div>
+    );
+  }
+
   // DEFAULT: Celluloid Classic Cinema
   return null;
 };

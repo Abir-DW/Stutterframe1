@@ -15,6 +15,18 @@ export const ThemeSwitcher: React.FC = () => {
 
   const themes: ThemeOption[] = [
     {
+      id: 'netflix',
+      name: 'Netflix 1:1 Crimson',
+      badge: 'Pitch Black & Red',
+      dotColor: 'bg-[#e50914]',
+    },
+    {
+      id: 'amazon-prime',
+      name: 'Amazon Prime Video',
+      badge: 'Dark Navy & Electric Blue',
+      dotColor: 'bg-[#00a8e1]',
+    },
+    {
       id: 'default',
       name: 'Celluloid 35mm',
       badge: 'Warm Amber Gold',
@@ -83,11 +95,13 @@ export const ThemeSwitcher: React.FC = () => {
 
       {isOpen && (
         <>
+          {/* Backdrop on mobile */}
           <div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs sm:bg-transparent sm:backdrop-blur-none"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-72 p-2 rounded-xl bg-zinc-950 border border-zinc-800 shadow-2xl z-50 animate-fadeIn backdrop-blur-md max-h-[80vh] overflow-y-auto">
+          {/* Dropdown Container: Fixed & full-width on mobile, absolute right-0 on desktop */}
+          <div className="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 max-w-[calc(100vw-1.5rem)] p-2.5 rounded-2xl bg-zinc-950 border border-amber-500/40 sm:border-zinc-800 shadow-2xl z-50 animate-fadeIn backdrop-blur-md max-h-[80vh] overflow-y-auto">
             <div className="px-2.5 py-1.5 border-b border-zinc-800/80 mb-1 flex items-center justify-between">
               <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider block">
                 Cinematic Color Grading
@@ -97,7 +111,7 @@ export const ThemeSwitcher: React.FC = () => {
                   setIsOpen(false);
                   openSettings('theme');
                 }}
-                className="text-[10px] font-mono text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-[10px] font-mono text-amber-400 hover:underline flex items-center gap-1 cursor-pointer py-0.5"
               >
                 <SlidersHorizontal className="w-2.5 h-2.5" />
                 Customize
@@ -115,21 +129,21 @@ export const ThemeSwitcher: React.FC = () => {
                       openSettings('theme');
                     }
                   }}
-                  className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs font-mono transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-mono transition-all cursor-pointer touch-manipulation active:scale-[0.99] ${
                     theme === t.id
-                      ? 'bg-zinc-800/90 text-white font-semibold'
+                      ? 'bg-zinc-800/90 text-white font-semibold ring-1 ring-amber-400/30'
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span className={`w-3 h-3 rounded-full ${t.dotColor} flex-shrink-0 shadow-sm`} />
-                    <div>
-                      <span className="block text-xs">{t.name}</span>
-                      <span className="text-[9px] text-zinc-500">{t.badge}</span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className={`w-3.5 h-3.5 rounded-full ${t.dotColor} flex-shrink-0 shadow-sm`} />
+                    <div className="min-w-0">
+                      <span className="block text-xs truncate text-white">{t.name}</span>
+                      <span className="text-[9px] text-zinc-400 block font-mono truncate">{t.badge}</span>
                     </div>
                   </div>
                   {theme === t.id && (
-                    <Check className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 ml-2" />
                   )}
                 </button>
               ))}

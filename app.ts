@@ -10,6 +10,7 @@ import {
   generateFallbackScriptLab,
   generateFallbackGear,
 } from './lib/cinematicEngine';
+import { getDirectorBackendConfig } from './lib/directorPersonasBackend';
 
 dotenv.config();
 
@@ -80,6 +81,7 @@ app.use((req, _res, next) => {
       req.url.startsWith('/gear-suggestor') ||
       req.url.startsWith('/editor-advisor') ||
       req.url.startsWith('/assistant') ||
+      req.url.startsWith('/youtube-search') ||
       req.url.startsWith('/quota') ||
       req.url.startsWith('/health'))
   ) {
@@ -1742,7 +1744,7 @@ Return only JSON.`;
 // -------------------------------------------------------------
 app.post(['/api/assistant/stream', '/assistant/stream'], async (req: Request, res: Response) => {
   try {
-    const { messages, forceSearch } = req.body;
+    const { messages, forceSearch, directorPersona } = req.body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'Please provide messages array.' });
@@ -1756,11 +1758,8 @@ app.post(['/api/assistant/stream', '/assistant/stream'], async (req: Request, re
         latestMessage
       );
 
-    const systemInstruction = `You are the StutterFrame Assistant — an elite cinematic mentor, technical advisor, and conversational companion for filmmakers, screenwriters, and cinephiles.
-Your persona: Deeply knowledgeable in directing, cinematography (lighting ratios, focal lengths, camera sensor technologies, color science), screenplay craft, and post-production.
-Tone: Articulate, inspiring, precise, and practical. Avoid fluff; give real-world film production advice with concrete examples from film history and modern cinema.
-If formatting screenplay snippets, use Courier font style.
-Keep responses concise, scannable, and rapid.`;
+    const personaConfig = getDirectorBackendConfig(directorPersona);
+    const systemInstruction = personaConfig.systemInstruction;
 
     const contents = messages.map((m: any) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -1818,10 +1817,8 @@ Keep responses concise, scannable, and rapid.`;
     console.warn('Streaming model error, providing resilient mentor response:', error?.message);
     const msgs = req.body?.messages || [];
     const lastMsg = (msgs[msgs.length - 1]?.content || '').toLowerCase();
-    let reply = `In cinematic craft, technical discipline exists solely to serve narrative purpose. Whether you are choosing lens focal lengths, calibrating key-to-fill ratios, or structuring screenplay tension, keep the emotional journey of the audience at the core of every frame.`;
-    if (lastMsg.includes('lens') || lastMsg.includes('camera')) {
-      reply = `When choosing lenses: wide primes (24mm-35mm) enhance environmental presence and character vulnerability, normal primes (40mm-50mm) deliver natural human perspective, and telephotos (85mm+) compress space and isolate tension. Balance your sensor format to maintain intentional depth-of-field control.`;
-    }
+    const personaConfig = getDirectorBackendConfig(req.body?.directorPersona);
+    const reply = personaConfig.fallbackReply(lastMsg);
     res.write(`data: ${JSON.stringify({ text: reply })}\n\n`);
     res.write(`data: ${JSON.stringify({ done: true, grounded: false, sources: [] })}\n\n`);
     res.end();
@@ -1831,7 +1828,7 @@ Keep responses concise, scannable, and rapid.`;
 // Non-streaming fallback for /api/assistant using Flash-Lite and minimal thinking
 app.post(['/api/assistant', '/assistant'], async (req: Request, res: Response) => {
   try {
-    const { messages, forceSearch } = req.body;
+    const { messages, forceSearch, directorPersona } = req.body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'Please provide messages array.' });
@@ -1845,11 +1842,8 @@ app.post(['/api/assistant', '/assistant'], async (req: Request, res: Response) =
         latestMessage
       );
 
-    const systemInstruction = `You are the StutterFrame Assistant — an elite cinematic mentor, technical advisor, and conversational companion for filmmakers, screenwriters, and cinephiles.
-Your persona: Deeply knowledgeable in directing, cinematography (lighting ratios, focal lengths, camera sensor technologies, color science), screenplay craft, and post-production.
-Tone: Articulate, inspiring, precise, and practical. Avoid fluff; give real-world film production advice with concrete examples from film history and modern cinema.
-If formatting screenplay snippets, use Courier font style.
-Keep responses concise, scannable, and engaging.`;
+    const personaConfig = getDirectorBackendConfig(directorPersona);
+    const systemInstruction = personaConfig.systemInstruction;
 
     const contents = messages.map((m: any) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -1867,39 +1861,33 @@ Keep responses concise, scannable, and engaging.`;
       config.tools = [{ googleSearch: {} }];
     }
 
-    const response = await callGeminiREST(FAST_CHAT_MODEL, contents, config, extractReqApiKey(req));
-
-    const replyText = response.text || '';
-    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-    const sources = chunks
-      .map((c: any) => c.web)
-      .filter((w: any) => w && w.uri)
-      .map((w: any) => ({
-        title: w.title || 'Source Citation',
-        uri: w.uri,
-      }));
+    const result = await callGeminiREST(FAST_CHAT_MODEL, contents, config, extractReqApiKey(req));
+    let sources: any[] = [];
+    const chunks = result.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    if (chunks) {
+      sources = chunks
+        .map((c: any) => c.web)
+        .filter((w: any) => w && w.uri)
+        .map((w: any) => ({
+          title: w.title || 'Source Citation',
+          uri: w.uri,
+        }));
+    }
 
     res.json({
-      reply: replyText,
-      grounded: needsGrounding,
+      reply: result.text || personaConfig.fallbackReply(latestMessage.toLowerCase()),
       sources: sources.slice(0, 5),
+      grounded: needsGrounding,
     });
   } catch (error: any) {
-    console.warn('Live assistant encountered error, generating cinematic mentor guidance:', error?.message);
+    console.warn('Assistant error, providing resilient mentor response:', error?.message);
     const msgs = req.body?.messages || [];
     const lastMsg = (msgs[msgs.length - 1]?.content || '').toLowerCase();
-    let reply = `In cinematic storytelling, intentionality is paramount. Every technical parameter—from the focal length and T-stop to lighting ratios and pacing—must serve the emotional psychology of your characters. Focus on establishing depth using upstage lighting, contrast through negative fill, and discipline in coverage.`;
-    if (lastMsg.includes('lens') || lastMsg.includes('camera') || lastMsg.includes('focal')) {
-      reply = `When selecting focal lengths: wide lenses (24mm-35mm) accentuate physical space and character vulnerability, normal primes (40mm-50mm) reproduce natural human eye perspective, and telephotos (85mm-135mm) compress background planes and isolate psychological tension. Always calibrate for your sensor format (Super35 vs Full Frame) to maintain deliberate field-of-view control.`;
-    } else if (lastMsg.includes('light') || lastMsg.includes('ratio') || lastMsg.includes('grade')) {
-      reply = `For cinematic lighting: always light from the upstage (shadow) side relative to camera to create natural chiaroscuro wrap. Use large diffuse bounce sources for soft skin wrap, and build contrast with 4x4 negative fill solid flags rather than pushing your key light intensity. In the grade, protect skin tones along the vectorscope I-line.`;
-    } else if (lastMsg.includes('script') || lastMsg.includes('scene') || lastMsg.includes('story')) {
-      reply = `When structuring a scene: arrive as late as possible and leave as early as possible. Give characters active, conflicting physical objectives rather than conversational exposition. Every scene should end with a change in emotional leverage or new obstacle.`;
-    }
-    return res.json({
-      reply,
-      grounded: false,
+    const personaConfig = getDirectorBackendConfig(req.body?.directorPersona);
+    res.json({
+      reply: personaConfig.fallbackReply(lastMsg),
       sources: [],
+      grounded: false,
     });
   }
 });

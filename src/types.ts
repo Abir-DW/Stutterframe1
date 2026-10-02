@@ -163,7 +163,32 @@ export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  persona?: DirectorPersonaId;
   grounded?: boolean;
   sources?: GroundingSource[];
   timestamp: string;
+}
+
+export type DirectorPersonaId =
+  | 'default'
+  | 'nolan'
+  | 'fincher'
+  | 'tarantino'
+  | 'spielberg'
+  | 'villeneuve'
+  | 'scorsese'
+  | 'wes-anderson';
+
+export interface DirectorPersona {
+  id: DirectorPersonaId;
+  name: string;
+  shortName: string;
+  tagline: string;
+  philosophy: string;
+  accentColor: string;
+  bgGlow: string;
+  iconType: 'clapper' | 'hourglass' | 'crosshair' | 'trunk' | 'aperture' | 'monolith' | 'whip' | 'symmetry';
+  filmHallmarks: string[];
+  sampleStarters: string[];
+  initialGreeting: string;
 }

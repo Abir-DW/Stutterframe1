@@ -18,8 +18,117 @@ import {
   Sliders,
   Layers,
   Crosshair,
+  Layout,
+  ChevronDown,
+  Compass,
+  PanelLeft,
+  CreditCard,
+  Maximize2,
+  HelpCircle,
+  Tv,
 } from 'lucide-react';
-import { useSettings, CursorType, ColorTheme, UIStyleType } from '../context/SettingsContext';
+import {
+  useSettings,
+  CursorType,
+  ColorTheme,
+  UIStyleType,
+  UILayoutType,
+  ActionPositionType,
+  AssistantPositionType,
+} from '../context/SettingsContext';
+
+interface UILayoutOption {
+  id: UILayoutType;
+  name: string;
+  badge: string;
+  description: string;
+  features: string[];
+  icon: any;
+  bestFor: string;
+}
+
+const UI_LAYOUT_OPTIONS: UILayoutOption[] = [
+  {
+    id: 'netflix',
+    name: 'Netflix 1:1 Streaming',
+    badge: '1:1 Integration',
+    description:
+      'Authentic 1:1 Netflix streaming platform interface. Giant billboard hero banner, bold Bebas Neue condensed typography, signature Netflix crimson accents, white solid play buttons, and horizontal swipe rails with 3D Top 10 numerals.',
+    features: ['1:1 Billboard hero section', 'Netflix red & pitch black #141414', 'Horizontal scrolling rails & 3D numerals', 'Bebas Neue display typography'],
+    icon: Tv,
+    bestFor: 'Streaming Experience & Cinematic Browsing',
+  },
+  {
+    id: 'amazon-prime',
+    name: 'Amazon Prime Video',
+    badge: '1:1 Integration',
+    description:
+      'Authentic 1:1 Amazon Prime Video platform interface. Deep slate navy canvas (#0f172a), Prime electric blue (#00a8e1) accents, X-Ray metadata tags, curved smile branding, and horizontal Prime swimlane carousels.',
+    features: ['1:1 Prime hero carousel', 'Prime electric blue & slate navy', 'X-Ray frame & metadata tags', 'Included with Prime filter chips'],
+    icon: Tv,
+    bestFor: 'Prime Video Fans & Sleek Dark Navy UI',
+  },
+  {
+    id: 'top-bar',
+    name: 'Celluloid Top Bar',
+    badge: 'Standard Default',
+    description:
+      'Classic desktop horizontal navigation bar with responsive mobile horizontal track. Keeps all core tools readily visible on wide monitors.',
+    features: ['Classic cinema header', 'Responsive sub-navigation bar', 'Right-aligned tool cluster', 'Balanced screen space'],
+    icon: Layout,
+    bestFor: 'Laptops & Desktop Workstations',
+  },
+  {
+    id: 'dropdown',
+    name: 'Dropdown Menu Header',
+    badge: 'Compact Focus',
+    description:
+      'Compact minimalist header that organizes tools into an elegant categorized dropdown menu. Maximizes screen real estate for deep screenplay writing and video evaluation.',
+    features: ['Categorized tools popover', 'Clean minimal header', 'High-focus viewport', 'No horizontal clutter'],
+    icon: ChevronDown,
+    bestFor: 'Concentrated Screenplay & Script Lab',
+  },
+  {
+    id: 'popup',
+    name: 'Popup Command Deck',
+    badge: 'Radial HUD / ⌘K',
+    description:
+      'Futuristic HUD launcher button that summons a full-screen Command Deck modal with live search, tool cards, keyboard shortcuts, and instant jumps.',
+    features: ['Instant ⌘K / Ctrl+K shortcut', 'Fast search-as-you-type filter', 'Large interactive tool cards', 'Director action shortcuts'],
+    icon: Compass,
+    bestFor: 'Power Users & Rapid Navigation',
+  },
+  {
+    id: 'sidebar',
+    name: 'Left Film Strip Sidebar',
+    badge: 'Dock & Drawer',
+    description:
+      'Collapsible vertical filmstrip dock permanently accessible on the left of desktop screens, with smooth slide-out drawer on mobile phones.',
+    features: ['Vertical tool tabs with badges', 'Expand / Collapse icon rail', 'Slide-out mobile cinema drawer', 'Dedicated bottom control dock'],
+    icon: PanelLeft,
+    bestFor: 'Large Monitors & Multitasking',
+  },
+  {
+    id: 'bottom-nav',
+    name: 'App Bottom Navigation',
+    badge: 'Mobile Thumb Dock',
+    description:
+      'Mobile-native thumb dock pinned directly to the bottom edge with iOS/Android safe-area inset support and slide-up sheet for secondary tools.',
+    features: ['Ergonomic thumb reachability', 'Slide-up cinema suite sheet', 'PWA / Mobile browser optimized', 'Ultra-clean top header'],
+    icon: CreditCard,
+    bestFor: 'Mobile Phones & Tablets',
+  },
+  {
+    id: 'floating-island',
+    name: 'Floating Dynamic Island',
+    badge: 'Capsule HUD',
+    description:
+      'Futuristic capsule island floating gracefully above content with frosted glassmorphism, instant tool icons, and expandable settings drawer.',
+    features: ['Floating glassmorphic pill', 'Subtle border glow', 'Tool quick triggers', 'Expandable quick drawer'],
+    icon: Maximize2,
+    bestFor: 'Immersive Shot Review & Cine Aesthetics',
+  },
+];
 
 interface UIStyleOption {
   id: UIStyleType;
@@ -32,6 +141,26 @@ interface UIStyleOption {
 }
 
 const UI_STYLE_OPTIONS: UIStyleOption[] = [
+  {
+    id: 'netflix',
+    name: 'Netflix 1:1 Cinema',
+    movieInspiration: 'Netflix Original • Global Streaming Icon',
+    badge: '1:1 Streaming UI',
+    description:
+      'Pitch black #141414 canvas, signature Netflix Crimson #e50914, bold Bebas Neue display typography, solid white play buttons, and subtle red ambient spotlight.',
+    features: ['Pitch black #141414 canvas', 'Netflix Crimson accents', 'Bebas Neue bold condensed typography', 'Solid white play action buttons'],
+    tag: 'Streaming Platform',
+  },
+  {
+    id: 'amazon-prime',
+    name: 'Amazon Prime Video',
+    movieInspiration: 'Prime Video • Amazon MGM Studios',
+    badge: '1:1 Streaming UI',
+    description:
+      'Deep slate navy canvas (#0f172a), Prime Electric Blue #00a8e1, clean Amazon geometric sans typography, and X-Ray metadata badges.',
+    features: ['Dark slate navy #0f172a', 'Prime Electric Blue accents', 'X-Ray metadata badges', 'Prime smile brand accents'],
+    tag: 'Streaming Platform',
+  },
   {
     id: 'default',
     name: 'Celluloid Classic',
@@ -383,6 +512,20 @@ const PRESET_FLASH_COLORS = [
 
 const THEME_OPTIONS: { id: ColorTheme; name: string; badge: string; color: string; desc: string }[] = [
   {
+    id: 'netflix',
+    name: 'Netflix 1:1 Crimson',
+    badge: 'Pitch Black & Red',
+    color: '#e50914',
+    desc: 'Pitch black #141414 background paired with signature Netflix Crimson red accents.',
+  },
+  {
+    id: 'amazon-prime',
+    name: 'Amazon Prime Video',
+    badge: 'Dark Navy & Electric Blue',
+    color: '#00a8e1',
+    desc: 'Deep slate navy #0f172a background paired with Prime Electric Blue accents.',
+  },
+  {
     id: 'default',
     name: 'Celluloid 35mm',
     badge: 'Warm Amber Gold',
@@ -467,11 +610,20 @@ export const SettingsModal: React.FC = () => {
     resetCustomPalette,
     uiStyle,
     setUIStyle,
+    uiLayout,
+    setUILayout,
+    actionPosition,
+    setActionPosition,
+    assistantPosition,
+    setAssistantPosition,
+    compactMode,
+    setCompactMode,
+    resetLayoutSettings,
     resetAllSettings,
     triggerPageChangeEffect,
   } = useSettings();
 
-  const [activeTab, setActiveTab] = useState<'ui-style' | 'cursor' | 'theme' | 'credits'>(settingsTab);
+  const [activeTab, setActiveTab] = useState<'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits'>(settingsTab);
   const [editingColorFor, setEditingColorFor] = useState<CursorType>(cursorType);
   const [testClapCount, setTestClapCount] = useState(0);
 
@@ -557,6 +709,19 @@ export const SettingsModal: React.FC = () => {
           >
             <Layers className="w-3.5 h-3.5" />
             <span>UI Architecture</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block ml-0.5" />
+          </button>
+
+          <button
+            onClick={() => setActiveTab('layout')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+              activeTab === 'layout'
+                ? 'bg-amber-500 text-black font-bold shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+            }`}
+          >
+            <Layout className="w-3.5 h-3.5" />
+            <span>UI Layouts</span>
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block ml-0.5" />
           </button>
 
@@ -720,7 +885,226 @@ export const SettingsModal: React.FC = () => {
               </div>
             </div>
           )}
-          {/* TAB 1: CURSOR CUSTOMIZATION (PC USERS) */}
+
+          {/* TAB 1: UI LAYOUTS & BUTTON POSITIONS */}
+          {activeTab === 'layout' && (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Header Context Card */}
+              <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 border border-amber-500/30 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Layout className="w-4 h-4 text-amber-400" />
+                    <span className="font-courier text-xs font-bold text-white uppercase tracking-wider">
+                      Cinema Navigation &amp; UI Layout Systems
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono text-[10px] uppercase font-bold border border-amber-500/30">
+                    {UI_LAYOUT_OPTIONS.length} Layout Archetypes
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400 leading-relaxed font-sans">
+                  Choose how menus, buttons, and navigation docks are positioned. Every layout adapts dynamically to your active Movie Theme and Color Palette, and is optimized for both desktop and mobile browsers.
+                </p>
+              </div>
+
+              {/* Layout Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {UI_LAYOUT_OPTIONS.map((layout) => {
+                  const Icon = layout.icon;
+                  const isSelected = uiLayout === layout.id;
+                  return (
+                    <div
+                      key={layout.id}
+                      onClick={() => setUILayout(layout.id)}
+                      className={`p-4 rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between group touch-manipulation active:scale-[0.99] ${
+                        isSelected
+                          ? 'bg-zinc-900 border-amber-400 shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/50'
+                          : 'bg-zinc-950/80 hover:bg-zinc-900/90 border-zinc-800 hover:border-zinc-700'
+                      }`}
+                    >
+                      <div className="space-y-2.5">
+                        {/* Top Meta row */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                                isSelected
+                                  ? 'bg-amber-500 text-black font-bold'
+                                  : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                              }`}
+                            >
+                              <Icon className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-semibold">
+                              {layout.bestFor}
+                            </span>
+                          </div>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider ${
+                              isSelected
+                                ? 'bg-amber-500 text-black'
+                                : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+                            }`}
+                          >
+                            {isSelected ? 'Active Layout' : layout.badge}
+                          </span>
+                        </div>
+
+                        {/* Title & Description */}
+                        <div>
+                          <h4 className="font-courier text-base font-bold text-white group-hover:text-amber-300 transition-colors">
+                            {layout.name}
+                          </h4>
+                          <p className="text-xs text-zinc-300 font-sans leading-relaxed mt-1">
+                            {layout.description}
+                          </p>
+                        </div>
+
+                        {/* Feature Badges */}
+                        <div className="pt-1 flex flex-wrap gap-1.5">
+                          {layout.features.map((feat, idx) => (
+                            <span
+                              key={idx}
+                              className="text-[10px] font-mono px-2 py-0.5 rounded bg-black/50 border border-zinc-800/80 text-zinc-400"
+                            >
+                              {feat}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Bottom status / selector button */}
+                      <div className="pt-3 mt-3 border-t border-zinc-900 flex items-center justify-between text-xs font-mono">
+                        <span className={isSelected ? 'text-amber-400 font-bold' : 'text-zinc-500'}>
+                          {isSelected ? '✓ Currently Live' : 'Click to Apply Layout'}
+                        </span>
+                        <div
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                            isSelected
+                              ? 'border-amber-400 bg-amber-400 text-black'
+                              : 'border-zinc-700 bg-transparent'
+                          }`}
+                        >
+                          {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Menu & Button Positioning Options */}
+              <div className="p-4 sm:p-5 rounded-xl bg-zinc-900/70 border border-zinc-800 space-y-4">
+                <div className="flex items-center gap-2 border-b border-zinc-800 pb-2.5">
+                  <Sliders className="w-4 h-4 text-amber-400" />
+                  <span className="font-courier text-xs font-bold text-white uppercase tracking-wider">
+                    Menu &amp; Button Positions
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Header Actions Alignment */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-mono text-zinc-300 block">
+                      Header Action Buttons Alignment:
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800 text-xs font-mono">
+                      {(['right', 'left', 'center', 'split'] as ActionPositionType[]).map((pos) => (
+                        <button
+                          key={pos}
+                          type="button"
+                          onClick={() => setActionPosition(pos)}
+                          className={`py-2 px-2 rounded-lg text-center capitalize transition-colors cursor-pointer text-xs font-medium truncate touch-manipulation min-h-[38px] ${
+                            actionPosition === pos
+                              ? 'bg-amber-500 text-black font-bold shadow-xs'
+                              : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                          }`}
+                        >
+                          {pos}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* AI Assistant Placement */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-mono text-zinc-300 block">
+                      AI Assistant Button Position:
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800 text-xs font-mono">
+                      {(
+                        [
+                          { id: 'bottom-right', label: 'Bottom Right' },
+                          { id: 'bottom-left', label: 'Bottom Left' },
+                          { id: 'header-only', label: 'Header Only' },
+                        ] as { id: AssistantPositionType; label: string }[]
+                      ).map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setAssistantPosition(item.id)}
+                          className={`py-2 px-2 rounded-lg text-center text-xs font-medium transition-colors cursor-pointer truncate touch-manipulation min-h-[38px] ${
+                            assistantPosition === item.id
+                              ? 'bg-amber-500 text-black font-bold shadow-xs'
+                              : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compact Interface Toggle */}
+                <div className="pt-2 flex items-center justify-between border-t border-zinc-800/80">
+                  <div>
+                    <span className="text-xs font-mono text-zinc-200 block font-semibold">
+                      Compact Screen Space Mode
+                    </span>
+                    <span className="text-[11px] text-zinc-500 font-sans block">
+                      Reduces vertical padding for dense screenplay reading &amp; editing.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCompactMode(!compactMode)}
+                    className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
+                      compactMode ? 'bg-amber-500' : 'bg-zinc-800'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full bg-black transition-transform absolute top-1 ${
+                        compactMode ? 'translate-x-7' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Instant Rollback Button */}
+              <div className="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <div className="font-courier text-xs font-bold text-white uppercase">
+                    Rollback to Classic Top Bar Layout
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
+                    Instantly reverts the layout, menus, and button positions to the standard Top Bar without affecting your work or themes.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetLayoutSettings}
+                  className="px-3.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-400 border border-zinc-700 text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer flex-shrink-0 flex items-center gap-1.5 active:scale-95"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Restore Default Layout</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: CURSOR CUSTOMIZATION (PC USERS) */}
           {activeTab === 'cursor' && (
             <div className="space-y-6 animate-fadeIn">
               {/* 1. Cursor Type Selector */}

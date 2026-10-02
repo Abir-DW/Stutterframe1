@@ -21,10 +21,27 @@ export type ColorTheme =
   | 'blade-runner'
   | 'technicolor'
   | 'midnight'
+  | 'netflix'
+  | 'amazon-prime'
   | 'custom';
+
+export type UILayoutType =
+  | 'top-bar'         // Classic Top Bar (Default: standard top nav with responsive sub-bar)
+  | 'dropdown'        // Dropdown Menu Type (Compact header with elegant cinema tools dropdown)
+  | 'popup'           // Popup / Command Center HUD (Floating launcher & Command Deck modal)
+  | 'sidebar'         // Left Sidebar Navigation Dock (Vertical filmstrip dock + mobile drawer)
+  | 'bottom-nav'      // Bottom Navigation Bar (Mobile-first thumb dock with slide-up sheet)
+  | 'floating-island' // Floating Dynamic Island (Floating capsule dock above content)
+  | 'netflix'         // Netflix 1:1 Streaming UI (Billboard hero, red accents, horizontal rails, Bebas Neue)
+  | 'amazon-prime';   // Amazon Prime 1:1 Streaming UI (Prime navy, electric blue, X-Ray tags, Prime carousel)
+
+export type ActionPositionType = 'right' | 'left' | 'center' | 'split';
+export type AssistantPositionType = 'bottom-right' | 'bottom-left' | 'header-only';
 
 export type UIStyleType =
   | 'default'        // Celluloid Classic (Current: 35mm film grain, courier typography, amber clapperboard, vintage tape)
+  | 'netflix'        // Netflix 1:1 Cinema: Pitch black #141414, Bebas Neue bold typography, Netflix red #e50914, white play buttons
+  | 'amazon-prime'   // Amazon Prime 1:1 Cinema: Deep navy #0f172a, Prime electric blue #00a8e1, smile accent, X-Ray badges
   | 'godfather'      // The Godfather: Gothic Victorian Mafia Noir (Red/White text, blood creeping up hero, ornate frames, pistol cursor)
   | 'batman'         // The Batman: Dark Knight Gotham (League Gothic, red/orange/white, animated bats, rain, batarang cursor)
   | 'interstellar'   // Interstellar (Endurance space font, warping starfield & Gargantua accretion glow, endurance cursor)
@@ -72,9 +89,24 @@ export interface SettingsContextType {
   customPalette: CustomThemePalette;
   uiStyle: UIStyleType;
   setUIStyle: (style: UIStyleType) => void;
+  uiLayout: UILayoutType;
+  setUILayout: (layout: UILayoutType) => void;
+  actionPosition: ActionPositionType;
+  setActionPosition: (pos: ActionPositionType) => void;
+  assistantPosition: AssistantPositionType;
+  setAssistantPosition: (pos: AssistantPositionType) => void;
+  compactMode: boolean;
+  setCompactMode: (compact: boolean) => void;
+  isCommandPopupOpen: boolean;
+  setIsCommandPopupOpen: (open: boolean) => void;
+  isSidebarExpanded: boolean;
+  setIsSidebarExpanded: (expanded: boolean) => void;
+  isMobileSidebarOpen: boolean;
+  setIsMobileSidebarOpen: (open: boolean) => void;
+  resetLayoutSettings: () => void;
   isSettingsOpen: boolean;
-  settingsTab: 'ui-style' | 'cursor' | 'theme' | 'credits';
-  openSettings: (tab?: 'ui-style' | 'cursor' | 'theme' | 'credits') => void;
+  settingsTab: 'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits';
+  openSettings: (tab?: 'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits') => void;
   closeSettings: () => void;
   setCursorType: (type: CursorType) => void;
   setCursorColor: (color: string, forType?: CursorType) => void;
@@ -115,16 +147,92 @@ export const DEFAULT_CUSTOM_PALETTE: CustomThemePalette = {
 
 const DEFAULT_THEME: ColorTheme = 'default';
 const DEFAULT_UI_STYLE: UIStyleType = 'default';
+const DEFAULT_UI_LAYOUT: UILayoutType = 'top-bar';
+const DEFAULT_ACTION_POSITION: ActionPositionType = 'right';
+const DEFAULT_ASSISTANT_POSITION: AssistantPositionType = 'bottom-right';
 const DEFAULT_CURSOR_TYPE: CursorType = 'default';
 // Default to native OS pointer so standard OS physics are respected out-of-the-box
 const DEFAULT_CURSOR_DEFAULT_MODE: CursorDefaultMode = 'native';
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [uiLayout, setUILayoutState] = useState<UILayoutType>(() => {
+    try {
+      const saved = localStorage.getItem('stutterframe-ui-layout');
+      // If user had previous youtube layout saved, sanitize it back to top-bar
+      if (saved === 'youtube') {
+        localStorage.removeItem('stutterframe-ui-layout');
+        return 'top-bar';
+      }
+      const validLayouts: UILayoutType[] = [
+        'top-bar',
+        'dropdown',
+        'popup',
+        'sidebar',
+        'bottom-nav',
+        'floating-island',
+        'netflix',
+        'amazon-prime',
+      ];
+      return saved && validLayouts.includes(saved as UILayoutType)
+        ? (saved as UILayoutType)
+        : DEFAULT_UI_LAYOUT;
+    } catch {
+      return DEFAULT_UI_LAYOUT;
+    }
+  });
+
+  const [actionPosition, setActionPositionState] = useState<ActionPositionType>(() => {
+    try {
+      const saved = localStorage.getItem('stutterframe-action-position') as ActionPositionType;
+      return saved === 'left' || saved === 'center' || saved === 'split' || saved === 'right'
+        ? (saved as ActionPositionType)
+        : DEFAULT_ACTION_POSITION;
+    } catch {
+      return DEFAULT_ACTION_POSITION;
+    }
+  });
+
+  const [assistantPosition, setAssistantPositionState] = useState<AssistantPositionType>(() => {
+    try {
+      const saved = localStorage.getItem('stutterframe-assistant-position') as AssistantPositionType;
+      return saved === 'bottom-left' || saved === 'header-only' || saved === 'bottom-right'
+        ? (saved as AssistantPositionType)
+        : DEFAULT_ASSISTANT_POSITION;
+    } catch {
+      return DEFAULT_ASSISTANT_POSITION;
+    }
+  });
+
+  const [compactMode, setCompactModeState] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('stutterframe-compact-mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [isCommandPopupOpen, setIsCommandPopupOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('stutterframe-sidebar-expanded');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
   const [uiStyle, setUIStyleState] = useState<UIStyleType>(() => {
     try {
       const saved = localStorage.getItem('stutterframe-ui-style') as UIStyleType;
+      if ((saved as string) === 'youtube') {
+        localStorage.removeItem('stutterframe-ui-style');
+        return 'default';
+      }
       const validStyles: UIStyleType[] = [
         'default',
+        'netflix',
+        'amazon-prime',
         'godfather',
         'batman',
         'interstellar',
@@ -204,7 +312,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const [theme, setThemeState] = useState<ColorTheme>(() => {
     try {
-      return (localStorage.getItem('stutterframe-theme') as ColorTheme) || DEFAULT_THEME;
+      const saved = localStorage.getItem('stutterframe-theme') as ColorTheme;
+      if ((saved as string) === 'youtube') {
+        localStorage.removeItem('stutterframe-theme');
+        return DEFAULT_THEME;
+      }
+      return saved || DEFAULT_THEME;
     } catch {
       return DEFAULT_THEME;
     }
@@ -229,9 +342,17 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'ui-style' | 'cursor' | 'theme' | 'credits'>('ui-style');
+  const [settingsTab, setSettingsTab] = useState<'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits'>('ui-style');
   const [pageChangeEventId, setPageChangeEventId] = useState(0);
   const [lastClickPos, setLastClickPos] = useState<{ x: number; y: number } | null>(null);
+
+  // Apply UI layout to DOM root
+  const applyUILayoutToDom = useCallback((layout: UILayoutType) => {
+    const root = document.documentElement;
+    const body = document.body;
+    root.setAttribute('data-ui-layout', layout);
+    body.setAttribute('data-ui-layout', layout);
+  }, []);
 
   // Apply UI style architecture to DOM root
   const applyUIStyleToDom = useCallback((style: UIStyleType) => {
@@ -240,24 +361,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     root.setAttribute('data-ui-style', style);
     body.setAttribute('data-ui-style', style);
   }, []);
-
-  // Sync UI style changes to DOM
-  useEffect(() => {
-    applyUIStyleToDom(uiStyle);
-  }, [uiStyle, applyUIStyleToDom]);
-
-  const setUIStyle = useCallback(
-    (newStyle: UIStyleType) => {
-      setUIStyleState(newStyle);
-      try {
-        localStorage.setItem('stutterframe-ui-style', newStyle);
-      } catch (err) {
-        console.warn('Storage error', err);
-      }
-      applyUIStyleToDom(newStyle);
-    },
-    [applyUIStyleToDom]
-  );
 
   // Apply theme and custom CSS variables to DOM
   const applyThemeToDom = useCallback((currentTheme: ColorTheme, palette: CustomThemePalette) => {
@@ -288,10 +391,167 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
+  // Sync UI layout changes to DOM
+  useEffect(() => {
+    applyUILayoutToDom(uiLayout);
+  }, [uiLayout, applyUILayoutToDom]);
+
+  // Sync UI style changes to DOM
+  useEffect(() => {
+    applyUIStyleToDom(uiStyle);
+  }, [uiStyle, applyUIStyleToDom]);
+
   // Sync theme changes to DOM
   useEffect(() => {
     applyThemeToDom(theme, customPalette);
   }, [theme, customPalette, applyThemeToDom]);
+
+  const setUILayout = useCallback(
+    (newLayout: UILayoutType) => {
+      setUILayoutState(newLayout);
+      try {
+        localStorage.setItem('stutterframe-ui-layout', newLayout);
+      } catch (err) {
+        console.warn('Storage error', err);
+      }
+      applyUILayoutToDom(newLayout);
+
+      // Auto-align 1:1 streaming theme & palette when selecting Netflix, Amazon Prime, or YouTube layout
+      if (newLayout === 'netflix') {
+        setUIStyleState('netflix');
+        setThemeState('netflix');
+        try {
+          localStorage.setItem('stutterframe-ui-style', 'netflix');
+          localStorage.setItem('stutterframe-theme', 'netflix');
+        } catch {}
+        applyUIStyleToDom('netflix');
+        applyThemeToDom('netflix', customPalette);
+      } else if (newLayout === 'amazon-prime') {
+        setUIStyleState('amazon-prime');
+        setThemeState('amazon-prime');
+        try {
+          localStorage.setItem('stutterframe-ui-style', 'amazon-prime');
+          localStorage.setItem('stutterframe-theme', 'amazon-prime');
+        } catch {}
+        applyUIStyleToDom('amazon-prime');
+        applyThemeToDom('amazon-prime', customPalette);
+      }
+    },
+    [applyUILayoutToDom, applyUIStyleToDom, applyThemeToDom, customPalette]
+  );
+
+  const setActionPosition = useCallback((pos: ActionPositionType) => {
+    setActionPositionState(pos);
+    try {
+      localStorage.setItem('stutterframe-action-position', pos);
+    } catch (err) {
+      console.warn('Storage error', err);
+    }
+  }, []);
+
+  const setAssistantPosition = useCallback((pos: AssistantPositionType) => {
+    setAssistantPositionState(pos);
+    try {
+      localStorage.setItem('stutterframe-assistant-position', pos);
+    } catch (err) {
+      console.warn('Storage error', err);
+    }
+  }, []);
+
+  const setCompactMode = useCallback((compact: boolean) => {
+    setCompactModeState(compact);
+    try {
+      localStorage.setItem('stutterframe-compact-mode', compact ? 'true' : 'false');
+    } catch (err) {
+      console.warn('Storage error', err);
+    }
+  }, []);
+
+  const handleSetIsSidebarExpanded = useCallback((expanded: boolean) => {
+    setIsSidebarExpanded(expanded);
+    try {
+      localStorage.setItem('stutterframe-sidebar-expanded', expanded ? 'true' : 'false');
+    } catch (err) {
+      console.warn('Storage error', err);
+    }
+  }, []);
+
+  const resetLayoutSettings = useCallback(() => {
+    setUILayoutState(DEFAULT_UI_LAYOUT);
+    setActionPositionState(DEFAULT_ACTION_POSITION);
+    setAssistantPositionState(DEFAULT_ASSISTANT_POSITION);
+    setCompactModeState(false);
+    setIsSidebarExpanded(true);
+    setIsCommandPopupOpen(false);
+    setIsMobileSidebarOpen(false);
+
+    // If currently on streaming theme, also restore default movie style on rollback
+    setUIStyleState((prev) => {
+      if (prev === 'netflix' || prev === 'amazon-prime' || (prev as string) === 'youtube') {
+        try {
+          localStorage.removeItem('stutterframe-ui-style');
+        } catch {}
+        applyUIStyleToDom(DEFAULT_UI_STYLE);
+        return DEFAULT_UI_STYLE;
+      }
+      return prev;
+    });
+
+    setThemeState((prev) => {
+      if (prev === 'netflix' || prev === 'amazon-prime' || (prev as string) === 'youtube') {
+        try {
+          localStorage.removeItem('stutterframe-theme');
+        } catch {}
+        return DEFAULT_THEME;
+      }
+      return prev;
+    });
+
+    try {
+      localStorage.removeItem('stutterframe-ui-layout');
+      localStorage.removeItem('stutterframe-action-position');
+      localStorage.removeItem('stutterframe-assistant-position');
+      localStorage.removeItem('stutterframe-compact-mode');
+      localStorage.removeItem('stutterframe-sidebar-expanded');
+    } catch (err) {
+      console.warn('Storage clear error', err);
+    }
+    applyUILayoutToDom(DEFAULT_UI_LAYOUT);
+  }, [applyUILayoutToDom, applyUIStyleToDom]);
+
+  const setUIStyle = useCallback(
+    (newStyle: UIStyleType) => {
+      setUIStyleState(newStyle);
+      try {
+        localStorage.setItem('stutterframe-ui-style', newStyle);
+      } catch (err) {
+        console.warn('Storage error', err);
+      }
+      applyUIStyleToDom(newStyle);
+
+      // When picking Netflix or Prime theme, align layout as well for 1:1 integration
+      if (newStyle === 'netflix') {
+        setUILayoutState('netflix');
+        setThemeState('netflix');
+        try {
+          localStorage.setItem('stutterframe-ui-layout', 'netflix');
+          localStorage.setItem('stutterframe-theme', 'netflix');
+        } catch {}
+        applyUILayoutToDom('netflix');
+        applyThemeToDom('netflix', customPalette);
+      } else if (newStyle === 'amazon-prime') {
+        setUILayoutState('amazon-prime');
+        setThemeState('amazon-prime');
+        try {
+          localStorage.setItem('stutterframe-ui-layout', 'amazon-prime');
+          localStorage.setItem('stutterframe-theme', 'amazon-prime');
+        } catch {}
+        applyUILayoutToDom('amazon-prime');
+        applyThemeToDom('amazon-prime', customPalette);
+      }
+    },
+    [applyUIStyleToDom, applyUILayoutToDom, applyThemeToDom, customPalette]
+  );
 
   const setTheme = useCallback(
     (newTheme: ColorTheme) => {
@@ -375,7 +635,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const openSettings = useCallback((tab: 'ui-style' | 'cursor' | 'theme' | 'credits' = 'ui-style') => {
+  const openSettings = useCallback((tab: 'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits' = 'ui-style') => {
     setSettingsTab(tab);
     setIsSettingsOpen(true);
   }, []);
@@ -385,7 +645,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   // OVERALL RESET TO DEFAULT
-  // Explicitly resets cursor to System default Native OS pointer, UI style, & themes to default
+  // Explicitly resets cursor to System default Native OS pointer, UI style, UI layout & themes to default
   const resetAllSettings = useCallback(() => {
     setCursorTypeState(DEFAULT_CURSOR_TYPE);
     setCursorDefaultModeState('native'); // System default Native OS pointer
@@ -394,6 +654,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setThemeState(DEFAULT_THEME);
     setCustomPaletteState(DEFAULT_CUSTOM_PALETTE);
     setUIStyleState(DEFAULT_UI_STYLE);
+    resetLayoutSettings();
 
     try {
       localStorage.removeItem('stutterframe-cursor-type');
@@ -404,13 +665,19 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.removeItem('stutterframe-theme');
       localStorage.removeItem('stutterframe-custom-palette');
       localStorage.removeItem('stutterframe-ui-style');
+      localStorage.removeItem('stutterframe-ui-layout');
+      localStorage.removeItem('stutterframe-action-position');
+      localStorage.removeItem('stutterframe-assistant-position');
+      localStorage.removeItem('stutterframe-compact-mode');
+      localStorage.removeItem('stutterframe-sidebar-expanded');
     } catch (err) {
       console.warn('Storage clear error', err);
     }
 
     applyThemeToDom(DEFAULT_THEME, DEFAULT_CUSTOM_PALETTE);
     applyUIStyleToDom(DEFAULT_UI_STYLE);
-  }, [applyThemeToDom, applyUIStyleToDom]);
+    applyUILayoutToDom(DEFAULT_UI_LAYOUT);
+  }, [applyThemeToDom, applyUIStyleToDom, applyUILayoutToDom, resetLayoutSettings]);
 
   // Active cursor color resolved from cursorColors
   const activeCursorColor = cursorColors[cursorType] || DEFAULT_CURSOR_COLORS[cursorType] || '#f59e0b';
@@ -437,6 +704,21 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         customPalette,
         uiStyle,
         setUIStyle,
+        uiLayout,
+        setUILayout,
+        actionPosition,
+        setActionPosition,
+        assistantPosition,
+        setAssistantPosition,
+        compactMode,
+        setCompactMode,
+        isCommandPopupOpen,
+        setIsCommandPopupOpen,
+        isSidebarExpanded,
+        setIsSidebarExpanded: handleSetIsSidebarExpanded,
+        isMobileSidebarOpen,
+        setIsMobileSidebarOpen,
+        resetLayoutSettings,
         isSettingsOpen,
         settingsTab,
         openSettings,
