@@ -21,6 +21,7 @@ import { SidebarNav } from './components/SidebarNav';
 import { BottomNavBar } from './components/BottomNavBar';
 import { FloatingIslandNav } from './components/FloatingIslandNav';
 import { CommandCenterModal } from './components/CommandCenterModal';
+import { YouTubeAppLayout } from './components/YouTubeAppLayout';
 import { SettingsProvider, useSettings } from './context/SettingsContext';
 import { Settings } from 'lucide-react';
 
@@ -71,6 +72,7 @@ function AppContent() {
   const isSidebarLayout = uiLayout === 'sidebar';
   const isBottomNavLayout = uiLayout === 'bottom-nav';
   const isFloatingIslandLayout = uiLayout === 'floating-island';
+  const isYouTubeLayout = uiLayout === 'youtube';
 
   return (
     <div
@@ -100,28 +102,50 @@ function AppContent() {
         />
       )}
 
-      {/* Sticky Header with wordmark, themes, and tools */}
-      <Header
-        currentRoute={currentRoute}
-        navigate={(route) => navigate(route)}
-        openAssistant={() => setIsAssistantOpen(true)}
-        openAbout={() => setIsAboutOpen(true)}
-      />
+      {/* When YouTube layout is active, render authentic YouTube App Shell */}
+      {isYouTubeLayout ? (
+        <YouTubeAppLayout
+          currentRoute={currentRoute}
+          navigate={(route) => navigate(route)}
+          openAssistant={() => setIsAssistantOpen(true)}
+          openAbout={() => setIsAboutOpen(true)}
+        >
+          <main className="flex-1 pb-20 lg:pb-12">
+            {currentRoute === 'home' && <HomeView navigate={(route) => navigate(route)} />}
+            {currentRoute === 'movie-picker' && <MoviePicker />}
+            {currentRoute === 'shot-rater' && <ShotRater />}
+            {currentRoute === 'script-lab' && <ScriptLab />}
+            {currentRoute === 'gear-suggestor' && <GearSuggestor />}
+            {currentRoute === 'editor-advisor' && <EditorAdvisor />}
+            {currentRoute === 'faq' && <FaqView />}
+          </main>
+        </YouTubeAppLayout>
+      ) : (
+        <>
+          {/* Sticky Header with wordmark, themes, and tools */}
+          <Header
+            currentRoute={currentRoute}
+            navigate={(route) => navigate(route)}
+            openAssistant={() => setIsAssistantOpen(true)}
+            openAbout={() => setIsAboutOpen(true)}
+          />
 
-      {/* Main Content Area */}
-      <main
-        className={`flex-1 pt-2 ${
-          isBottomNavLayout || isFloatingIslandLayout ? 'pb-28' : 'pb-16'
-        }`}
-      >
-        {currentRoute === 'home' && <HomeView navigate={(route) => navigate(route)} />}
-        {currentRoute === 'movie-picker' && <MoviePicker />}
-        {currentRoute === 'shot-rater' && <ShotRater />}
-        {currentRoute === 'script-lab' && <ScriptLab />}
-        {currentRoute === 'gear-suggestor' && <GearSuggestor />}
-        {currentRoute === 'editor-advisor' && <EditorAdvisor />}
-        {currentRoute === 'faq' && <FaqView />}
-      </main>
+          {/* Main Content Area */}
+          <main
+            className={`flex-1 pt-2 ${
+              isBottomNavLayout || isFloatingIslandLayout ? 'pb-28' : 'pb-16'
+            }`}
+          >
+            {currentRoute === 'home' && <HomeView navigate={(route) => navigate(route)} />}
+            {currentRoute === 'movie-picker' && <MoviePicker />}
+            {currentRoute === 'shot-rater' && <ShotRater />}
+            {currentRoute === 'script-lab' && <ScriptLab />}
+            {currentRoute === 'gear-suggestor' && <GearSuggestor />}
+            {currentRoute === 'editor-advisor' && <EditorAdvisor />}
+            {currentRoute === 'faq' && <FaqView />}
+          </main>
+        </>
+      )}
 
       {/* 6. Pinned Bottom Navigation Bar (when uiLayout === 'bottom-nav') */}
       {isBottomNavLayout && (

@@ -413,6 +413,47 @@
   fill: #00a8e1 !important;
 }
 
+/* 10. YouTube 1:1 App Palette (Pitch Dark #0f0f0f, Red #ff0000, Card #181818) */
+[data-theme="youtube"] {
+  --bg-main: #0f0f0f;
+}
+[data-theme="youtube"] body {
+  background-color: #0f0f0f !important;
+}
+[data-theme="youtube"] .text-amber-400,
+[data-theme="youtube"] .text-amber-300,
+[data-theme="youtube"] .text-amber-500 {
+  color: #ff0000 !important;
+}
+[data-theme="youtube"] .bg-amber-500,
+[data-theme="youtube"] .bg-amber-400 {
+  background-color: #ff0000 !important;
+  color: #ffffff !important;
+}
+[data-theme="youtube"] .bg-gradient-to-r.from-amber-500,
+[data-theme="youtube"] .bg-gradient-to-br.from-amber-500 {
+  background-image: linear-gradient(135deg, #ff0000 0%, #cc0000 100%) !important;
+  color: #ffffff !important;
+}
+[data-theme="youtube"] .border-amber-500,
+[data-theme="youtube"] .border-amber-500\/40,
+[data-theme="youtube"] .border-amber-500\/30,
+[data-theme="youtube"] .border-amber-500\/50,
+[data-theme="youtube"] .border-amber-500\/20,
+[data-theme="youtube"] .border-amber-400 {
+  border-color: rgba(255, 0, 0, 0.45) !important;
+}
+[data-theme="youtube"] .bg-amber-500\/10,
+[data-theme="youtube"] .bg-amber-500\/15,
+[data-theme="youtube"] .bg-amber-500\/20,
+[data-theme="youtube"] .bg-amber-950\/20,
+[data-theme="youtube"] .bg-amber-950\/30 {
+  background-color: rgba(255, 0, 0, 0.12) !important;
+}
+[data-theme="youtube"] .fill-amber-400 {
+  fill: #ff0000 !important;
+}
+
 /* 11. Customizable Director Palette (Live Dynamic CSS Variables) */
 [data-theme="custom"] body {
   background-color: var(--bg-main) !important;
@@ -881,6 +922,81 @@ html.has-custom-cursor .cursor-pointer {
 [data-ui-layout="amazon-prime"] .border-amber-400,
 [data-ui-layout="amazon-prime"] .border-amber-500 {
   border-color: rgba(0, 168, 225, 0.5) !important;
+}
+
+/* -------------------------------------------------------------------------
+   0C. YOUTUBE 1:1 AUTHENTIC APP PLATFORM
+   (Pitch Black #0f0f0f, Dark Card #181818, Border #272727, YouTube Red #ff0000,
+    Clean pill chips, authentic modern mobile/desktop shell)
+   ------------------------------------------------------------------------- */
+[data-ui-style="youtube"],
+[data-ui-layout="youtube"] {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  color: #f1f1f1 !important;
+  background-color: #0f0f0f !important;
+}
+
+[data-ui-style="youtube"] h1,
+[data-ui-style="youtube"] h2,
+[data-ui-style="youtube"] h3,
+[data-ui-style="youtube"] .font-courier,
+[data-ui-layout="youtube"] h1,
+[data-ui-layout="youtube"] h2,
+[data-ui-layout="youtube"] h3,
+[data-ui-layout="youtube"] .font-courier {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em !important;
+  color: #ffffff !important;
+}
+
+[data-ui-style="youtube"] .film-grain,
+[data-ui-layout="youtube"] .film-grain {
+  opacity: 0.02 !important;
+}
+
+[data-ui-style="youtube"] .bg-zinc-950,
+[data-ui-style="youtube"] .bg-zinc-950\/80,
+[data-ui-style="youtube"] .bg-zinc-900,
+[data-ui-style="youtube"] .bg-zinc-900\/60,
+[data-ui-style="youtube"] .bg-zinc-900\/70,
+[data-ui-style="youtube"] .bg-zinc-900\/80,
+[data-ui-style="youtube"] .bg-zinc-900\/90,
+[data-ui-style="youtube"] .bg-\[\#0c0c0f\],
+[data-ui-style="youtube"] .bg-\[\#0d0d10\],
+[data-ui-layout="youtube"] .bg-zinc-950,
+[data-ui-layout="youtube"] .bg-zinc-950\/80,
+[data-ui-layout="youtube"] .bg-zinc-900,
+[data-ui-layout="youtube"] .bg-zinc-900\/60,
+[data-ui-layout="youtube"] .bg-zinc-900\/70,
+[data-ui-layout="youtube"] .bg-zinc-900\/80,
+[data-ui-layout="youtube"] .bg-zinc-900\/90,
+[data-ui-layout="youtube"] .bg-\[\#0c0c0f\],
+[data-ui-layout="youtube"] .bg-\[\#0d0d10\] {
+  background-color: #181818 !important;
+  border-color: #272727 !important;
+}
+
+[data-ui-style="youtube"] .text-amber-400,
+[data-ui-style="youtube"] .text-amber-500,
+[data-ui-layout="youtube"] .text-amber-400,
+[data-ui-layout="youtube"] .text-amber-500 {
+  color: #ff0000 !important;
+}
+
+[data-ui-style="youtube"] .bg-amber-500,
+[data-ui-style="youtube"] .bg-amber-400,
+[data-ui-layout="youtube"] .bg-amber-500,
+[data-ui-layout="youtube"] .bg-amber-400 {
+  background-color: #ff0000 !important;
+  color: #ffffff !important;
+}
+
+[data-ui-style="youtube"] .border-amber-400,
+[data-ui-style="youtube"] .border-amber-500,
+[data-ui-layout="youtube"] .border-amber-400,
+[data-ui-layout="youtube"] .border-amber-500 {
+  border-color: rgba(255, 0, 0, 0.45) !important;
 }
 
 /* Explicit line-clamp rules for cross-browser reliability */

@@ -65,8 +65,9 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
   const [inputText, setInputText] = useState('');
   const [forceSearch, setForceSearch] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isPersonaDropdownOpen, setIsPersonaDropdownOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const personasRailRef = useRef<HTMLDivElement>(null);
+  const personaDropdownRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -78,8 +79,24 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
     }
   }, [messages, isOpen]);
 
+  // Close persona dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (personaDropdownRef.current && !personaDropdownRef.current.contains(e.target as Node)) {
+        setIsPersonaDropdownOpen(false);
+      }
+    };
+    if (isPersonaDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isPersonaDropdownOpen]);
+
   // Handle switching persona
   const handleSelectPersona = (personaId: DirectorPersonaId) => {
+    setIsPersonaDropdownOpen(false);
     if (personaId === selectedPersonaId) return;
 
     const newPersona = getDirectorPersona(personaId);
@@ -363,51 +380,124 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
                 </div>
               </div>
 
-              {/* Horizontal Scrollable Persona Chips */}
-              <div
-                ref={personasRailRef}
-                className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1"
-              >
-                {DIRECTOR_PERSONAS.map((persona) => {
-                  const isSelected = selectedPersonaId === persona.id;
-                  return (
-                    <button
-                      key={persona.id}
-                      onClick={() => handleSelectPersona(persona.id)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer whitespace-nowrap flex-shrink-0 border ${
-                        isSelected
-                          ? 'shadow-sm font-bold scale-[1.02]'
-                          : 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border-zinc-800'
-                      }`}
-                      style={
-                        isSelected
-                          ? {
-                              backgroundColor: `${persona.accentColor}20`,
-                              borderColor: persona.accentColor,
-                              color: '#ffffff',
-                              boxShadow: `0 0 12px ${persona.accentColor}30`,
-                            }
-                          : undefined
-                      }
-                      title={`${persona.name}: ${persona.tagline}`}
+              {/* Clean Director Persona Dropdown Selector */}
+              <div ref={personaDropdownRef} className="relative z-30">
+                <button
+                  type="button"
+                  onClick={() => setIsPersonaDropdownOpen(!isPersonaDropdownOpen)}
+                  className="w-full flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer bg-zinc-900/90 hover:bg-zinc-850 shadow-sm"
+                  style={{
+                    borderColor: `${activePersona.accentColor}50`,
+                  }}
+                  aria-expanded={isPersonaDropdownOpen}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{
+                        backgroundColor: `${activePersona.accentColor}25`,
+                        color: activePersona.accentColor,
+                      }}
                     >
-                      <span
-                        style={{
-                          color: isSelected ? persona.accentColor : '#a1a1aa',
-                        }}
-                      >
-                        {renderPersonaIcon(persona.iconType, 'w-3 h-3')}
-                      </span>
-                      <span>{persona.shortName}</span>
-                      {isSelected && (
+                      {renderPersonaIcon(activePersona.iconType, 'w-3.5 h-3.5')}
+                    </div>
+                    <div className="text-left min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-courier font-bold text-xs text-white truncate">
+                          {activePersona.name}
+                        </span>
                         <span
-                          className="w-1.5 h-1.5 rounded-full"
-                          style={{ backgroundColor: persona.accentColor }}
-                        />
-                      )}
-                    </button>
-                  );
-                })}
+                          className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold uppercase tracking-wider"
+                          style={{
+                            backgroundColor: `${activePersona.accentColor}20`,
+                            color: activePersona.accentColor,
+                          }}
+                        >
+                          Chair
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-zinc-400 font-mono truncate max-w-[240px] sm:max-w-xs">
+                        {activePersona.tagline}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 pl-2 text-zinc-400">
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isPersonaDropdownOpen ? 'rotate-180 text-white' : ''
+                      }`}
+                    />
+                  </div>
+                </button>
+
+                {/* Dropdown Menu Popup */}
+                {isPersonaDropdownOpen && (
+                  <div className="absolute inset-x-0 top-full mt-1.5 p-1.5 rounded-xl bg-zinc-950 border border-zinc-800 shadow-2xl z-50 max-h-64 overflow-y-auto no-scrollbar space-y-1 animate-fadeIn">
+                    <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-zinc-500 font-bold border-b border-zinc-800/80 mb-1">
+                      Choose Director Directorial Chair:
+                    </div>
+
+                    {DIRECTOR_PERSONAS.map((persona) => {
+                      const isSelected = selectedPersonaId === persona.id;
+
+                      return (
+                        <button
+                          key={persona.id}
+                          type="button"
+                          onClick={() => handleSelectPersona(persona.id)}
+                          className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-all cursor-pointer group ${
+                            isSelected
+                              ? 'bg-zinc-850 border border-zinc-700/80'
+                              : 'hover:bg-zinc-900 border border-transparent'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                              style={{
+                                backgroundColor: `${persona.accentColor}20`,
+                                color: persona.accentColor,
+                              }}
+                            >
+                              {renderPersonaIcon(persona.iconType, 'w-3 h-3')}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span
+                                  className={`text-xs font-mono font-bold truncate ${
+                                    isSelected ? 'text-white' : 'text-zinc-200 group-hover:text-white'
+                                  }`}
+                                >
+                                  {persona.name}
+                                </span>
+                                {persona.id === 'default' && (
+                                  <span className="text-[9px] font-mono text-zinc-400 bg-zinc-800 px-1 py-0.2 rounded">
+                                    Default
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-zinc-400 font-mono truncate max-w-[210px] sm:max-w-xs">
+                                {persona.tagline}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 pl-2 flex-shrink-0">
+                            {isSelected && (
+                              <div
+                                className="w-4 h-4 rounded-full flex items-center justify-center"
+                                style={{ backgroundColor: persona.accentColor }}
+                              >
+                                <Check className="w-2.5 h-2.5 text-black stroke-[3]" />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Expandable Persona Philosophy & Hallmarks Card */}

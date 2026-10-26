@@ -49,6 +49,16 @@ interface UILayoutOption {
 
 const UI_LAYOUT_OPTIONS: UILayoutOption[] = [
   {
+    id: 'youtube',
+    name: 'YouTube 1:1 App Shell',
+    badge: '1:1 Integration',
+    description:
+      'Authentic 1:1 YouTube application experience. Red play badge, centered search bar with voice trigger, video category filter chips, collapsible desktop sidebar, red #ff0000 accents, and dedicated mobile bottom navigation dock.',
+    features: ['1:1 YouTube header with pill search', 'Scrollable category filter chips', 'Collapsible desktop sidebar & mobile dock', 'Red #ff0000 accents & pure dark #0f0f0f'],
+    icon: Youtube,
+    bestFor: 'Creator Workflow, Video Browsing & Mobile Phones',
+  },
+  {
     id: 'netflix',
     name: 'Netflix 1:1 Streaming',
     badge: '1:1 Integration',
@@ -141,6 +151,16 @@ interface UIStyleOption {
 }
 
 const UI_STYLE_OPTIONS: UIStyleOption[] = [
+  {
+    id: 'youtube',
+    name: 'YouTube App Platform',
+    movieInspiration: 'YouTube Creator Studio • 1:1 App UI',
+    badge: '1:1 Integration',
+    description:
+      'Pitch dark #0f0f0f canvas, YouTube Red #ff0000 accents, authentic pill search, clean video category chips, and modern creator layout.',
+    features: ['Pitch dark #0f0f0f canvas', 'YouTube Red accents', 'Pill-shaped filter chips', 'Responsive mobile dock & sidebar'],
+    tag: 'Creator Platform',
+  },
   {
     id: 'netflix',
     name: 'Netflix 1:1 Cinema',
@@ -512,6 +532,13 @@ const PRESET_FLASH_COLORS = [
 
 const THEME_OPTIONS: { id: ColorTheme; name: string; badge: string; color: string; desc: string }[] = [
   {
+    id: 'youtube',
+    name: 'YouTube 1:1 Dark & Red',
+    badge: '1:1 YouTube App',
+    color: '#ff0000',
+    desc: 'Pitch dark #0f0f0f background paired with signature YouTube brand red and crisp video cards.',
+  },
+  {
     id: 'netflix',
     name: 'Netflix 1:1 Crimson',
     badge: 'Pitch Black & Red',
@@ -623,13 +650,23 @@ export const SettingsModal: React.FC = () => {
     triggerPageChangeEffect,
   } = useSettings();
 
-  const [activeTab, setActiveTab] = useState<'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits'>(settingsTab);
+  const [activeTab, setActiveTab] = useState<'themes' | 'layouts' | 'preferences'>(() => {
+    if (settingsTab === 'layout' || settingsTab === 'layouts') return 'layouts';
+    if (settingsTab === 'cursor' || settingsTab === 'preferences' || settingsTab === 'credits') return 'preferences';
+    return 'themes';
+  });
   const [editingColorFor, setEditingColorFor] = useState<CursorType>(cursorType);
   const [testClapCount, setTestClapCount] = useState(0);
 
   // Sync activeTab when modal opens with specific tab
   React.useEffect(() => {
-    setActiveTab(settingsTab);
+    if (settingsTab === 'layout' || settingsTab === 'layouts') {
+      setActiveTab('layouts');
+    } else if (settingsTab === 'cursor' || settingsTab === 'preferences' || settingsTab === 'credits') {
+      setActiveTab('preferences');
+    } else {
+      setActiveTab('themes');
+    }
   }, [settingsTab, isSettingsOpen]);
 
   // Keep editingColorFor in sync with cursorType
@@ -670,10 +707,10 @@ export const SettingsModal: React.FC = () => {
             </div>
             <div>
               <h3 className="font-courier text-sm sm:text-base font-bold text-white leading-none">
-                PREFERENCES &amp; CREDITS
+                STUDIO PREFERENCES &amp; THEMES
               </h3>
               <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest block mt-0.5">
-                StutterFrame Engine
+                Streamlined 3-Tab Customizer
               </span>
             </div>
           </div>
@@ -697,75 +734,52 @@ export const SettingsModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Tab Switcher Pills */}
-        <div className="px-3 sm:px-6 pt-2.5 pb-2 border-b border-zinc-800/80 bg-zinc-950 flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
+        {/* Streamlined 3-Tab Switcher Pills */}
+        <div className="px-3 sm:px-6 pt-2.5 pb-2 border-b border-zinc-800/80 bg-zinc-950 flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
           <button
-            onClick={() => setActiveTab('ui-style')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
-              activeTab === 'ui-style'
-                ? 'bg-amber-500 text-black font-bold shadow-xs'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>UI Architecture</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block ml-0.5" />
-          </button>
-
-          <button
-            onClick={() => setActiveTab('layout')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
-              activeTab === 'layout'
-                ? 'bg-amber-500 text-black font-bold shadow-xs'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
-            }`}
-          >
-            <Layout className="w-3.5 h-3.5" />
-            <span>UI Layouts</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block ml-0.5" />
-          </button>
-
-          <button
-            onClick={() => setActiveTab('cursor')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
-              activeTab === 'cursor'
-                ? 'bg-amber-500 text-black font-bold shadow-xs'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
-            }`}
-          >
-            <MousePointer className="w-3.5 h-3.5" />
-            <span>PC Cursor</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('theme')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
-              activeTab === 'theme'
+            onClick={() => setActiveTab('themes')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+              activeTab === 'themes'
                 ? 'bg-amber-500 text-black font-bold shadow-xs'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
             }`}
           >
             <Palette className="w-3.5 h-3.5" />
-            <span>Theme Grading</span>
+            <span>Visual Themes</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block ml-0.5" />
           </button>
 
           <button
-            onClick={() => setActiveTab('credits')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
-              activeTab === 'credits'
+            onClick={() => setActiveTab('layouts')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+              activeTab === 'layouts'
                 ? 'bg-amber-500 text-black font-bold shadow-xs'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
             }`}
           >
-            <Award className="w-3.5 h-3.5" />
-            <span>Credits &amp; Director</span>
+            <Layout className="w-3.5 h-3.5" />
+            <span>Navigation Layouts</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block ml-0.5" />
+          </button>
+
+          <button
+            onClick={() => setActiveTab('preferences')}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap active:scale-95 ${
+              activeTab === 'preferences'
+                ? 'bg-amber-500 text-black font-bold shadow-xs'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>Audio &amp; Preferences</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block ml-0.5" />
           </button>
         </div>
 
         {/* Tab Content Body */}
         <div className="p-3.5 sm:p-6 overflow-y-auto space-y-6 text-zinc-300 text-sm font-sans flex-1">
-          {/* TAB 0: UI ARCHITECTURE & MOVIE-INSPIRED DESIGN SYSTEM */}
-          {activeTab === 'ui-style' && (
+          {/* TAB 1: VISUAL THEMES & COLOR GRADING */}
+          {activeTab === 'themes' && (
             <div className="space-y-6 animate-fadeIn">
               {/* Header Context Card */}
               <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 border border-amber-500/30 space-y-2.5">
@@ -864,6 +878,157 @@ export const SettingsModal: React.FC = () => {
                 })}
               </div>
 
+              {/* CINEMATIC COLOR GRADING & PALETTE FINE-TUNING */}
+              <div className="pt-2 border-t border-zinc-800 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 className="font-courier text-xs sm:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <Palette className="w-4 h-4 text-amber-400" />
+                      <span>Cinematic Color Grade Swatches</span>
+                    </h4>
+                    <p className="text-[11px] text-zinc-400 font-mono mt-0.5">
+                      Select a stock grade or customize your own director palette in real time.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={resetCustomPalette}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-[11px] font-mono text-zinc-300 hover:text-amber-400 border border-zinc-800 transition-colors cursor-pointer self-start sm:self-auto active:scale-95"
+                    title="Reset custom palette to Celluloid Default"
+                  >
+                    <RotateCcw className="w-3 h-3 text-amber-400" />
+                    <span>Reset Palette to Default</span>
+                  </button>
+                </div>
+
+                {/* Theme Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {THEME_OPTIONS.map((t) => {
+                    const isSelected = theme === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setTheme(t.id)}
+                        className={`p-3 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between active:scale-[0.99] ${
+                          isSelected
+                            ? 'border-amber-400 bg-zinc-900/90 shadow-md ring-1 ring-amber-400/40'
+                            : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900 text-zinc-400'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="font-courier font-bold text-xs text-white flex items-center gap-1.5">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-black/50 shadow-xs flex-shrink-0"
+                                style={{ backgroundColor: t.color }}
+                              />
+                              <span className="truncate">{t.name}</span>
+                            </span>
+                            {isSelected && (
+                              <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[8px] font-mono uppercase font-bold flex-shrink-0">
+                                Active
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[9px] font-mono text-zinc-400 uppercase tracking-wider mb-1">
+                            {t.badge}
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-zinc-400 leading-relaxed font-sans line-clamp-1">
+                          {t.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* CUSTOM PALETTE BUILDER (Live CSS Variables) */}
+                {theme === 'custom' && (
+                  <div className="p-4 sm:p-5 rounded-xl bg-zinc-900/80 border border-amber-500/30 space-y-4 animate-fadeIn">
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                      <div className="flex items-center gap-2">
+                        <Sliders className="w-4 h-4 text-amber-400" />
+                        <h5 className="font-courier text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                          Director Palette Studio
+                        </h5>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={resetCustomPalette}
+                        className="text-xs font-mono text-amber-400 hover:underline cursor-pointer"
+                      >
+                        Reset to Celluloid
+                      </button>
+                    </div>
+
+                    <p className="text-xs text-zinc-400 font-mono">
+                      Fine-tune the foundational colors of the site in real time. Changes apply instantly.
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* 1. Primary Accent Color */}
+                      <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
+                        <span className="text-[11px] font-mono text-zinc-400 block uppercase">
+                          Primary Accent
+                        </span>
+                        <div className="flex items-center gap-2.5">
+                          <input
+                            type="color"
+                            value={customPalette.primary}
+                            onChange={(e) => setCustomPalette({ primary: e.target.value })}
+                            className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
+                          />
+                          <code className="text-xs font-mono text-white">{customPalette.primary}</code>
+                        </div>
+                        <span className="text-[10px] text-zinc-500 block">
+                          Buttons, glowing borders &amp; ratings
+                        </span>
+                      </div>
+
+                      {/* 2. Main Background Color */}
+                      <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
+                        <span className="text-[11px] font-mono text-zinc-400 block uppercase">
+                          Main Canvas Tint
+                        </span>
+                        <div className="flex items-center gap-2.5">
+                          <input
+                            type="color"
+                            value={customPalette.bg}
+                            onChange={(e) => setCustomPalette({ bg: e.target.value })}
+                            className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
+                          />
+                          <code className="text-xs font-mono text-white">{customPalette.bg}</code>
+                        </div>
+                        <span className="text-[10px] text-zinc-500 block">
+                          Underlying canvas &amp; deep backdrop
+                        </span>
+                      </div>
+
+                      {/* 3. Surface Card Tint */}
+                      <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
+                        <span className="text-[11px] font-mono text-zinc-400 block uppercase">
+                          Card / Surface Tint
+                        </span>
+                        <div className="flex items-center gap-2.5">
+                          <input
+                            type="color"
+                            value={customPalette.card}
+                            onChange={(e) => setCustomPalette({ card: e.target.value })}
+                            className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
+                          />
+                          <code className="text-xs font-mono text-white">{customPalette.card}</code>
+                        </div>
+                        <span className="text-[10px] text-zinc-500 block">
+                          Containers, modals &amp; tool panels
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Instant Rollback Button */}
               <div className="p-3.5 rounded-xl bg-zinc-900/80 border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
@@ -886,8 +1051,8 @@ export const SettingsModal: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 1: UI LAYOUTS & BUTTON POSITIONS */}
-          {activeTab === 'layout' && (
+          {/* TAB 2: UI LAYOUTS & BUTTON POSITIONS */}
+          {activeTab === 'layouts' && (
             <div className="space-y-6 animate-fadeIn">
               {/* Header Context Card */}
               <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 border border-amber-500/30 space-y-2.5">
@@ -1104,8 +1269,8 @@ export const SettingsModal: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 2: CURSOR CUSTOMIZATION (PC USERS) */}
-          {activeTab === 'cursor' && (
+          {/* TAB 3: CURSOR CUSTOMIZATION & DIRECTOR CREDITS */}
+          {activeTab === 'preferences' && (
             <div className="space-y-6 animate-fadeIn">
               {/* 1. Cursor Type Selector */}
               <div className="space-y-3">
@@ -1372,164 +1537,7 @@ export const SettingsModal: React.FC = () => {
                   </span>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* TAB 2: PAGE THEME COLOR GRADING */}
-          {activeTab === 'theme' && (
-            <div className="space-y-5 animate-fadeIn">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h4 className="font-courier text-sm sm:text-base font-bold text-white uppercase tracking-wider">
-                    Cinematic Color Grading
-                  </h4>
-                  <p className="text-xs text-zinc-400 font-mono mt-0.5">
-                    Select a curated cinematic stock grade or customize your own director palette.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={resetCustomPalette}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-[11px] font-mono text-zinc-300 hover:text-amber-400 border border-zinc-800 transition-colors cursor-pointer self-start sm:self-auto active:scale-95"
-                  title="Reset custom palette to Celluloid Default"
-                >
-                  <RotateCcw className="w-3 h-3 text-amber-400" />
-                  <span>Reset Palette to Default</span>
-                </button>
-              </div>
-
-              {/* Theme Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-                {THEME_OPTIONS.map((t) => {
-                  const isSelected = theme === t.id;
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => setTheme(t.id)}
-                      className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between active:scale-[0.99] ${
-                        isSelected
-                          ? 'border-amber-400 bg-zinc-900/90 shadow-lg ring-1 ring-amber-400/40'
-                          : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-900 text-zinc-400'
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-courier font-bold text-xs sm:text-sm text-white flex items-center gap-2">
-                            <span
-                              className="w-3 h-3 rounded-full border border-black/50 shadow-xs flex-shrink-0"
-                              style={{ backgroundColor: t.color }}
-                            />
-                            <span className="truncate">{t.name}</span>
-                          </span>
-                          {isSelected && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] font-mono uppercase font-bold flex-shrink-0">
-                              Active
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider mb-1.5">
-                          {t.badge}
-                        </div>
-                      </div>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed font-sans line-clamp-2">
-                        {t.desc}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* CUSTOM PALETTE BUILDER (Live CSS Variables) */}
-              {theme === 'custom' && (
-                <div className="p-4 sm:p-5 rounded-xl bg-zinc-900/80 border border-amber-500/30 space-y-4 animate-fadeIn">
-                  <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                    <div className="flex items-center gap-2">
-                      <Sliders className="w-4 h-4 text-amber-400" />
-                      <h5 className="font-courier text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
-                        Director Palette Studio
-                      </h5>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={resetCustomPalette}
-                      className="text-xs font-mono text-amber-400 hover:underline cursor-pointer"
-                    >
-                      Reset to Celluloid
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-zinc-400 font-mono">
-                    Fine-tune the foundational colors of the site in real time. Changes apply instantly.
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* 1. Primary Accent Color */}
-                    <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
-                      <span className="text-[11px] font-mono text-zinc-400 block uppercase">
-                        Primary Accent
-                      </span>
-                      <div className="flex items-center gap-2.5">
-                        <input
-                          type="color"
-                          value={customPalette.primary}
-                          onChange={(e) => setCustomPalette({ primary: e.target.value })}
-                          className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
-                        />
-                        <code className="text-xs font-mono text-white">{customPalette.primary}</code>
-                      </div>
-                      <span className="text-[10px] text-zinc-500 block">
-                        Buttons, glowing borders &amp; ratings
-                      </span>
-                    </div>
-
-                    {/* 2. Main Background Color */}
-                    <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
-                      <span className="text-[11px] font-mono text-zinc-400 block uppercase">
-                        Main Canvas Tint
-                      </span>
-                      <div className="flex items-center gap-2.5">
-                        <input
-                          type="color"
-                          value={customPalette.bg}
-                          onChange={(e) => setCustomPalette({ bg: e.target.value })}
-                          className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
-                        />
-                        <code className="text-xs font-mono text-white">{customPalette.bg}</code>
-                      </div>
-                      <span className="text-[10px] text-zinc-500 block">
-                        Underlying canvas &amp; deep backdrop
-                      </span>
-                    </div>
-
-                    {/* 3. Surface Card Tint */}
-                    <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2">
-                      <span className="text-[11px] font-mono text-zinc-400 block uppercase">
-                        Card / Surface Tint
-                      </span>
-                      <div className="flex items-center gap-2.5">
-                        <input
-                          type="color"
-                          value={customPalette.card}
-                          onChange={(e) => setCustomPalette({ card: e.target.value })}
-                          className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
-                        />
-                        <code className="text-xs font-mono text-white">{customPalette.card}</code>
-                      </div>
-                      <span className="text-[10px] text-zinc-500 block">
-                        Containers, modals &amp; tool panels
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 3: CREDITS DISPLAY & PRODUCTION ATTRIBUTION */}
-          {activeTab === 'credits' && (
-            <div className="space-y-6 animate-fadeIn">
               {/* Creator Profile Card */}
               <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-950 border border-amber-500/30 flex flex-col sm:flex-row items-center sm:items-start gap-4">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-amber-500/20 border-2 border-amber-400/60 flex items-center justify-center text-amber-300 font-courier text-xl sm:text-2xl font-bold flex-shrink-0 shadow-lg">

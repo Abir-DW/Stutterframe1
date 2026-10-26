@@ -18,6 +18,13 @@ import {
   Scale,
   Smile,
   MessageSquareQuote,
+  Send,
+  MessageSquare,
+  DollarSign,
+  Wrench,
+  Lightbulb,
+  Coins,
+  Bot,
 } from 'lucide-react';
 import { ShotRatingResult, CritiqueTier } from '../types';
 import { ResearchingIndicator, ErrorState } from './ResearchingIndicator';
@@ -84,6 +91,32 @@ export const ShotRater: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [retryDelaySeconds, setRetryDelaySeconds] = useState<number | null>(null);
   const [result, setResult] = useState<ShotRatingResult | null>(null);
+
+  // Post-Critique Interactive Director Consultation Chat
+  interface FollowupMessage {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: string;
+  }
+  const [followupMessages, setFollowupMessages] = useState<FollowupMessage[]>([]);
+  const [followupInput, setFollowupInput] = useState('');
+  const [followupLoading, setFollowupLoading] = useState(false);
+  const followupChatEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-seed welcoming consultation prompt when critique is generated
+  React.useEffect(() => {
+    if (result) {
+      setFollowupMessages([
+        {
+          id: 'init-greeting',
+          role: 'assistant',
+          content: `**Cinematography Vision Audit Complete (${result.scores?.overall?.toFixed(1) || '8.0'}/10)**\n\nI have evaluated your ${result.shotClassification?.shotType || 'shot'} (apparent lens: ${result.shotClassification?.apparentFocalLength || 'Standard Prime'}). Ask me how to fix the key-to-fill lighting, improve contrast, or what **budget gear in ₹ INR or $ USD** (from ₹300 DIY diffusion to Godox/Amaran lights and fast prime lenses) can upgrade this exact frame on set!`,
+          timestamp: 'Just now',
+        },
+      ]);
+    }
+  }, [result]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -279,11 +312,142 @@ export const ShotRater: React.FC = () => {
     }
   };
 
+  const handleSendFollowup = async (customPrompt?: string) => {
+    const textToSend = (customPrompt || followupInput).trim();
+    if (!textToSend || followupLoading || !result) return;
+
+    const userMsgId = 'user-' + Date.now();
+    const assistantMsgId = 'assistant-' + Date.now();
+
+    const newMessages = [
+      ...followupMessages,
+      {
+        id: userMsgId,
+        role: 'user' as const,
+        content: textToSend,
+        timestamp: 'Just now',
+      },
+      {
+        id: assistantMsgId,
+        role: 'assistant' as const,
+        content: '',
+        timestamp: 'Thinking...',
+      },
+    ];
+
+    setFollowupMessages(newMessages);
+    setFollowupInput('');
+    setFollowupLoading(true);
+
+    setTimeout(() => {
+      followupChatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
+
+    const prompt = `You are a professional cinematography mentor and camera/lighting expert reviewing a specific shot analysis.
+Shot context:
+- Shot type: ${result.shotClassification?.shotType || 'Medium Shot'}
+- Focal length: ${result.shotClassification?.apparentFocalLength || 'Standard Prime'}
+- Lighting score: ${result.scores?.lighting?.toFixed(1) || '7.5'}/10 (${result.lightingFeedback?.critique || result.lightingFeedback?.summary || ''})
+- Composition score: ${result.scores?.composition?.toFixed(1) || '8.0'}/10 (${result.compositionFeedback?.critique || result.compositionFeedback?.summary || ''})
+- Color score: ${result.scores?.color?.toFixed(1) || '7.5'}/10
+- Overall rating: ${result.scores?.overall?.toFixed(1) || '8.0'}/10
+- Actionable Fixes Identified: ${(result.actionableFixes || []).join('; ')}
+
+Filmmaker's Follow-up Question: "${textToSend}"
+
+Please provide concise, highly practical, battle-tested advice for on-set execution and post-production. Specifically detail:
+1. Exact camera/lighting steps to fix or elevate the shot on set.
+2. Practical budget gear suggestions with realistic pricing in ₹ INR and $ USD (e.g., ₹500 / $6 5-in-1 reflector, ₹4,500 / $55 Godox/Amaran pocket LED, DIY grid, ₹8,500 / $99 TTArtisan/Meike fast prime lens vs standard kit lenses).
+Format with clean bullet points and bold section headers. Keep it punchy and actionable.`;
+
+    try {
+      const response = await fetchWithAuth('/api/assistant/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          history: followupMessages.slice(-4).map((m) => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }],
+          })),
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error('API request failed');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.replace('data: ', '').trim();
+            if (dataStr === '[DONE]') break;
+            try {
+              const parsed = JSON.parse(dataStr);
+              if (parsed.text) {
+                accumulated += parsed.text;
+                setFollowupMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === assistantMsgId ? { ...msg, content: accumulated, timestamp: 'Just now' } : msg
+                  )
+                );
+              }
+            } catch {
+              // Ignore partial chunk parse
+            }
+          }
+        }
+      }
+
+      if (!accumulated) {
+        throw new Error('Empty response');
+      }
+    } catch {
+      // Resilient fallback with budget equipment advice in INR and USD
+      const fallbackResponse = `### On-Set Camera & Lighting Strategy
+
+**1. Practical Contrast & Lighting Fix:**
+- Add negative fill on the shadow side using black foam core or dark fabric to deepen contrast ratio without digital crushing.
+- Soften your key source using a 1/2 grid or 5-in-1 translucent diffuser held 2-3 feet from the subject's face.
+
+**2. Recommended Budget Gear Fixes (₹ INR & $ USD):**
+- **5-in-1 Collapsible Reflector (43")**: ~₹600 – ₹1,200 ($10 – $15 USD) — instant bounce & negative fill.
+- **Amaran MC / Godox M1 Pocket RGB LED**: ~₹4,500 – ₹6,990 ($55 – $85 USD) — magnetic, portable eye-light and rim accent.
+- **TTArtisan 35mm / 50mm f/1.4 Fast Prime**: ~₹8,500 – ₹11,500 ($99 – $139 USD) — creates organic shallow depth of field and beautiful bokeh separation compared to kit zooms.
+- **DIY Diffusion & Grid (Shower curtain / black corrugated sheet)**: Under ₹300 ($4 USD) — cinema-grade soft light on any budget.
+
+**3. Framing Adjustment:**
+Align subject eye-line with the upper 1/3 grid coordinate and leave breathing room towards the direction of the eyeline.`;
+
+      setFollowupMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMsgId ? { ...msg, content: fallbackResponse, timestamp: 'Just now' } : msg
+        )
+      );
+    } finally {
+      setFollowupLoading(false);
+      setTimeout(() => {
+        followupChatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    }
+  };
+
   const resetAll = () => {
     setImagePreview(null);
     setResult(null);
     setError(null);
     setFilmmakerNote('');
+    setFollowupMessages([]);
+    setFollowupInput('');
   };
 
   return (
@@ -832,6 +996,127 @@ export const ShotRater: React.FC = () => {
                 <p className="text-xs text-zinc-400 font-mono">Frame is technically sound.</p>
               )}
             </div>
+          </div>
+
+          {/* 7. Post-Critique Director Consultation & Budget Fixes Chat */}
+          <div className="p-6 sm:p-8 rounded-2xl bg-zinc-950 border border-amber-500/40 shadow-2xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-zinc-800 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-amber-400 font-mono text-xs uppercase tracking-widest">
+                  <Bot className="w-4 h-4 text-amber-400" />
+                  Post-Critique Director Consultation & Budget Gear
+                </div>
+                <h4 className="font-courier text-lg sm:text-xl font-bold text-white">
+                  Discuss Fixes, Camera Setup & Budget Equipment
+                </h4>
+                <p className="text-xs text-zinc-400 font-mono">
+                  Ask how to fix lighting, framing, contrast, or ask for gear recommendations in ₹ INR & $ USD.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                  <Coins className="w-3.5 h-3.5" />
+                  ₹ INR / $ USD Ready
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Prompt Suggestions */}
+            <div className="space-y-2">
+              <div className="text-[11px] font-mono uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+                Quick Questions for this Frame:
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  'What budget lighting gear under ₹5,000 / $60 can fix this frame?',
+                  'How can I improve contrast without crushing shadow detail?',
+                  'What fast prime lens (35mm or 50mm) would elevate this composition?',
+                  'How to fix the headroom and subject eyeline on set?',
+                ].map((promptText, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    disabled={followupLoading}
+                    onClick={() => handleSendFollowup(promptText)}
+                    className="text-xs font-mono px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-amber-300 border border-zinc-800 hover:border-amber-500/40 transition-colors cursor-pointer text-left"
+                  >
+                    {promptText}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Follow-up Message Thread */}
+            <div className="space-y-3.5 max-h-[420px] overflow-y-auto pr-1 py-1 custom-scrollbar">
+              {followupMessages.map((msg) => {
+                const isAssistant = msg.role === 'assistant';
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex gap-3 ${isAssistant ? 'items-start' : 'items-start flex-row-reverse'}`}
+                  >
+                    <div
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-mono ${
+                        isAssistant
+                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                          : 'bg-zinc-800 text-zinc-200 border border-zinc-700'
+                      }`}
+                    >
+                      {isAssistant ? <Bot className="w-4 h-4" /> : <Edit3 className="w-3.5 h-3.5" />}
+                    </div>
+                    <div
+                      className={`max-w-[85%] rounded-xl px-4 py-3 text-xs sm:text-sm leading-relaxed ${
+                        isAssistant
+                          ? 'bg-zinc-900 border border-zinc-800 text-zinc-200'
+                          : 'bg-amber-500/15 border border-amber-500/40 text-amber-200 font-mono'
+                      }`}
+                    >
+                      <div className="whitespace-pre-line font-sans">{msg.content || 'Analyzing shot physics...'}</div>
+                      <div className="mt-1 text-[10px] text-zinc-500 font-mono flex items-center gap-2">
+                        <span>{msg.timestamp}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              <div ref={followupChatEndRef} />
+            </div>
+
+            {/* Input Bar */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendFollowup();
+              }}
+              className="flex gap-2 pt-2"
+            >
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={followupInput}
+                  onChange={(e) => setFollowupInput(e.target.value)}
+                  placeholder="Ask for lighting fixes, lens options, or budget equipment (₹ INR / $ USD)..."
+                  disabled={followupLoading}
+                  className="w-full bg-zinc-900 border border-zinc-800 focus:border-amber-500 rounded-xl px-4 py-3 text-xs sm:text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none transition-all pr-10 font-mono"
+                />
+                <DollarSign className="w-4 h-4 text-zinc-600 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+              <button
+                type="submit"
+                disabled={!followupInput.trim() || followupLoading}
+                className="px-4 sm:px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-mono font-semibold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-amber-500/10"
+              >
+                {followupLoading ? (
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span className="hidden sm:inline">Ask AI</span>
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         </div>
       )}

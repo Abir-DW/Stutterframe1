@@ -14,6 +14,7 @@ export type CursorType =
 export type CursorDefaultMode = 'precision' | 'native';
 export type ColorTheme =
   | 'default'
+  | 'youtube'
   | 'cyberpunk'
   | 'emerald'
   | 'noir'
@@ -26,6 +27,7 @@ export type ColorTheme =
   | 'custom';
 
 export type UILayoutType =
+  | 'youtube'         // YouTube 1:1 App Experience (Header with search, chips bar, left sidebar, mobile bottom dock)
   | 'top-bar'         // Classic Top Bar (Default: standard top nav with responsive sub-bar)
   | 'dropdown'        // Dropdown Menu Type (Compact header with elegant cinema tools dropdown)
   | 'popup'           // Popup / Command Center HUD (Floating launcher & Command Deck modal)
@@ -40,6 +42,7 @@ export type AssistantPositionType = 'bottom-right' | 'bottom-left' | 'header-onl
 
 export type UIStyleType =
   | 'default'        // Celluloid Classic (Current: 35mm film grain, courier typography, amber clapperboard, vintage tape)
+  | 'youtube'        // YouTube 1:1 App: Clean dark #0f0f0f, YouTube red #ff0000, authentic pill search, chip filters
   | 'netflix'        // Netflix 1:1 Cinema: Pitch black #141414, Bebas Neue bold typography, Netflix red #e50914, white play buttons
   | 'amazon-prime'   // Amazon Prime 1:1 Cinema: Deep navy #0f172a, Prime electric blue #00a8e1, smile accent, X-Ray badges
   | 'godfather'      // The Godfather: Gothic Victorian Mafia Noir (Red/White text, blood creeping up hero, ornate frames, pistol cursor)
@@ -105,8 +108,8 @@ export interface SettingsContextType {
   setIsMobileSidebarOpen: (open: boolean) => void;
   resetLayoutSettings: () => void;
   isSettingsOpen: boolean;
-  settingsTab: 'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits';
-  openSettings: (tab?: 'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits') => void;
+  settingsTab: 'themes' | 'layouts' | 'preferences' | 'credits' | 'ui-style' | 'layout' | 'cursor' | 'theme';
+  openSettings: (tab?: 'themes' | 'layouts' | 'preferences' | 'credits' | 'ui-style' | 'layout' | 'cursor' | 'theme') => void;
   closeSettings: () => void;
   setCursorType: (type: CursorType) => void;
   setCursorColor: (color: string, forType?: CursorType) => void;
@@ -225,12 +228,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [uiStyle, setUIStyleState] = useState<UIStyleType>(() => {
     try {
       const saved = localStorage.getItem('stutterframe-ui-style') as UIStyleType;
-      if ((saved as string) === 'youtube') {
-        localStorage.removeItem('stutterframe-ui-style');
-        return 'default';
-      }
       const validStyles: UIStyleType[] = [
         'default',
+        'youtube',
         'netflix',
         'amazon-prime',
         'godfather',
@@ -313,10 +313,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [theme, setThemeState] = useState<ColorTheme>(() => {
     try {
       const saved = localStorage.getItem('stutterframe-theme') as ColorTheme;
-      if ((saved as string) === 'youtube') {
-        localStorage.removeItem('stutterframe-theme');
-        return DEFAULT_THEME;
-      }
       return saved || DEFAULT_THEME;
     } catch {
       return DEFAULT_THEME;
@@ -342,7 +338,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits'>('ui-style');
+  const [settingsTab, setSettingsTab] = useState<'themes' | 'layouts' | 'preferences' | 'credits' | 'ui-style' | 'layout' | 'cursor' | 'theme'>('themes');
   const [pageChangeEventId, setPageChangeEventId] = useState(0);
   const [lastClickPos, setLastClickPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -435,6 +431,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         } catch {}
         applyUIStyleToDom('amazon-prime');
         applyThemeToDom('amazon-prime', customPalette);
+      } else if (newLayout === 'youtube') {
+        setUIStyleState('youtube');
+        setThemeState('youtube');
+        try {
+          localStorage.setItem('stutterframe-ui-style', 'youtube');
+          localStorage.setItem('stutterframe-theme', 'youtube');
+        } catch {}
+        applyUIStyleToDom('youtube');
+        applyThemeToDom('youtube', customPalette);
       }
     },
     [applyUILayoutToDom, applyUIStyleToDom, applyThemeToDom, customPalette]
@@ -548,6 +553,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         } catch {}
         applyUILayoutToDom('amazon-prime');
         applyThemeToDom('amazon-prime', customPalette);
+      } else if (newStyle === 'youtube') {
+        setUILayoutState('youtube');
+        setThemeState('youtube');
+        try {
+          localStorage.setItem('stutterframe-ui-layout', 'youtube');
+          localStorage.setItem('stutterframe-theme', 'youtube');
+        } catch {}
+        applyUILayoutToDom('youtube');
+        applyThemeToDom('youtube', customPalette);
       }
     },
     [applyUIStyleToDom, applyUILayoutToDom, applyThemeToDom, customPalette]
@@ -635,10 +649,19 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const openSettings = useCallback((tab: 'ui-style' | 'layout' | 'cursor' | 'theme' | 'credits' = 'ui-style') => {
-    setSettingsTab(tab);
-    setIsSettingsOpen(true);
-  }, []);
+  const openSettings = useCallback(
+    (tab?: 'themes' | 'layouts' | 'preferences' | 'credits' | 'ui-style' | 'layout' | 'cursor' | 'theme') => {
+      let resolvedTab: any = 'themes';
+      if (tab === 'layouts' || tab === 'layout') resolvedTab = 'layouts';
+      else if (tab === 'preferences' || tab === 'cursor') resolvedTab = 'preferences';
+      else if (tab === 'credits') resolvedTab = 'credits';
+      else resolvedTab = 'themes';
+
+      setSettingsTab(resolvedTab);
+      setIsSettingsOpen(true);
+    },
+    []
+  );
 
   const closeSettings = useCallback(() => {
     setIsSettingsOpen(false);
