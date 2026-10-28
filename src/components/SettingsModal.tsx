@@ -905,7 +905,13 @@ export const SettingsModal: React.FC = () => {
                 {/* Theme Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {THEME_OPTIONS.map((t) => {
-                    const isSelected = theme === t.id;
+                    const isSelected =
+                      uiStyle === 'default'
+                        ? theme === t.id
+                        : (uiStyle === 'netflix' && t.id === 'netflix') ||
+                          (uiStyle === 'amazon-prime' && t.id === 'amazon-prime') ||
+                          (uiStyle === 'youtube' && t.id === 'youtube') ||
+                          (uiStyle === t.id);
                     return (
                       <button
                         key={t.id}

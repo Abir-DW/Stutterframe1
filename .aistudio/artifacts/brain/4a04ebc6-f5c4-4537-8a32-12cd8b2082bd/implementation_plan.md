@@ -1,115 +1,56 @@
-# Implementation Plan: YouTube Theme & App Shell, Streamlined Settings, Director Dropdown, and Shot Rater Post-Critique AI Chat
+# Implementation Plan: Lighting Studio & LUT Color Lab (8th Cinema Tool)
 
-Deliver an authentic YouTube application theme and responsive layout shell, streamline the multi-panel UI customizer into three intuitive tabs, upgrade the AI Assistant director selector to a clean dropdown, and add an interactive follow-up AI consultation after shot analysis with budget equipment recommendations.
-
----
-
-## 1. User Requirements & Clarifications Summary
-
-Based on your prompt and questionnaire answers:
-- **YouTube Theme & Layout**: Full 1:1 YouTube app shell with top YouTube header (search bar, mic icon, create button, notifications, user avatar), collapsible desktop sidebar, scrollable content filter chips, video card presentation style, and a dedicated mobile bottom navigation dock.
-- **Shot Rater Post-Critique AI Chat**: Interactive conversational AI follow-up after frame rating, focused specifically on practical camera and lighting fixes with budget gear suggestions (in ₹ INR and $ USD).
-- **Streamlined Customizer**: Consolidated 3-tab settings modal replacing the previous confusing "Switch UI", "Theme", and "UI Archetype" controls:
-  1. **Visual Themes**: One-click visual styles (YouTube, Celluloid, Netflix, Prime, Gotham, Dune, Interstellar, etc.).
-  2. **Navigation Layouts**: Shell architectures (YouTube App, Floating Dynamic Island, Desktop Sidebar, Top Bar, Bottom Nav, Command Deck).
-  3. **Cinema Tools & Preferences**: Cursors (Slate, Camera, Batarang), audio clicks, and credits.
-- **Director Persona Selection**: Upgrade from horizontal scrollbar pills to an elegant dropdown selector with director badges and cinema philosophies.
-- **Rollback & Resilience**: 1-click "Reset to Default" safety switch, client-side retry fallbacks, and Vercel-ready zero-secret architecture.
-- **Multi-Device Compatibility**: Ultra-responsive layout tested from 280px flip/fold screens to 4K ultra-wide monitors.
+Build and integrate the 8th cinema instrument: **Lighting & LUT Lab** (`lighting-lut-lab`), bringing the StutterFrame suite to an even **8 tools**. This perfectly balances all 4×2 desktop grids and 2-column mobile layouts across the Classic Cinema, YouTube, Netflix, and Amazon Prime shells, with a 1-click rollback safeguard and full GitHub-to-Vercel optimization.
 
 ---
 
-## 2. Proposed Architecture & Component Plan
+## 1. Architecture & Sub-Tab Structure
 
-### A. YouTube App Layout Shell (`src/components/YouTubeAppLayout.tsx`)
-- **Authentic YouTube Header**:
-  - Left: YouTube icon badge with red play icon + "StutterTube" / "StutterFrame" bold logo.
-  - Center: Pill-shaped search box with magnifying glass, search submit button, and microphone icon.
-  - Right: Quick "Create" (+), notifications bell with badge, and Director profile avatar.
-- **Filter Chip Bar**:
-  - Horizontal scrollable filter pills ("All", "Cinematography", "Shot Rater", "Budget Gear ₹", "Color Grading", "Film Recipes", "Screenwriting", "Lens Guide").
-  - Clicking chips smoothly switches active views or filters tools.
-- **Collapsible Mini/Expanded Left Sidebar (Desktop)**:
-  - Top section: Home, Movie Picker, Shot Rater, Script Lab, Gear Vault, Editor Advisor.
-  - Subscriptions / Library: Saved scripts, rated frame history, quick settings.
-- **Mobile Bottom Navigation Dock (Phones & Foldables)**:
-  - 5-tab bottom dock styled identically to YouTube Mobile: Home, Explore (Movie Picker), Center '+' (Shot Rater), Library (Script Lab), You (Assistant & Preferences).
-- **YouTube Video Card Feed Aesthetics**:
-  - When in Home view under YouTube theme, tools and featured film clips are styled like authentic video cards with runtime stamps (e.g. `12:45`), 16:9 thumbnail previews, channel badges, and view counts.
+The new component `src/components/LightingLutLab.tsx` will feature an elegant top segmented switcher toggle:
+- **Tab 1: 💡 Virtual Lighting Studio**
+  - Interactive 2D Soundstage Overhead Rig with Key, Fill, Rim, and Background practicals.
+  - Interactive Viewfinder Face Preview reacting in real time to light angles, softness, and distance.
+  - **Numerical Precision Sliders**:
+    - **Intensity**: Lux & Foot-Candles (0 to 5,000 lx).
+    - **Distance**: Accurate falloff based on inverse-square law ($I \propto 1/d^2$) in meters & feet.
+    - **Color Temperature (Kelvin)**: 2000K (Candle) → 3200K (Tungsten) → 5600K (Daylight) → 8000K (Deep Sky).
+    - **Diffusion & Beam Angle**: Hard fresnel spotlight vs. double-diffused softbox octa.
+  - **Contrast Ratio Meter**: Live mathematical Key-to-Fill ratio (**1:1**, **2:1**, **4:1 Dramatic**, **8:1 Film Noir**, **16:1 Low-Key**).
+  - **1-Click Classic Rigs**: Rembrandt, Split, Butterfly (Paramount), Loop, High-Key Commercial, and Fincher Mood.
+  - **Export Gaffer Setup Sheet**: Generates a downloadable camera/lighting cheat card for the production crew.
 
-### B. Consolidated 3-Tab Settings Modal (`src/components/SettingsModal.tsx`)
-- Replace the confusing multi-button panels with 3 clear, distinct tabs:
-  1. **Tab 1: Visual Themes & Film Styles**:
-     - Visual grid of themes featuring YouTube Dark (#0f0f0f + #ff0000), YouTube Light, Celluloid Classic, Netflix, Amazon Prime, The Batman, Dune, Interstellar, and Wes Anderson.
-     - High-contrast visual thumbnail preview cards with 1-click activation.
-  2. **Tab 2: Navigation Layouts**:
-     - YouTube App Shell, Floating Dynamic Island, Film Strip Left Sidebar, Celluloid Top Bar, Mobile Bottom Nav, and ⌘K Command Deck.
-     - Live indicator showing active layout.
-  3. **Tab 3: Cinema Tools & Audio**:
-     - Custom PC Cursors (Clapperboard slate, Camera with flash, Revolver, Batarang).
-     - SFX & Audio feedback toggles, and Director credits.
-- Include a prominent **"Reset All to Default"** rollback button in the modal footer.
-
-### C. Director Persona Dropdown Selector (`src/components/AssistantDrawer.tsx`)
-- Replace the horizontal overflow scrollbar with a custom dropdown button:
-  - Button displays current Director Avatar/Icon, Name, and direct style badge (e.g. *Christopher Nolan - Non-linear IMAX Realism*).
-  - Clicking opens a sleek popup menu showing all directors (Nolan, Fincher, Tarantino, Spielberg, Anderson, Villeneuve, and StutterFrame Standard Bot).
-  - Highlights active director with their signature accent color.
-  - Seamlessly handles keyboard navigation and mobile touch taps.
-
-### D. Post-Critique Shot Rater AI Chat (`src/components/ShotRater.tsx`)
-- Rendered immediately below the analysis results after an image is graded:
-  - **Director Follow-Up Consultation Box**:
-    - Pre-seeded with contextual metadata from the analyzed frame (lighting score, composition score, detected issues, focal length).
-    - Quick-tap suggestion chips:
-      - *"How can I fix this lighting under ₹5,000 / $60?"*
-      - *"What budget lens will give me this exact depth of field?"*
-      - *"How do I bounce or flag the spill on this key light?"*
-      - *"Recommend affordable gear available in India / Global for this setup."*
-    - Interactive chat input with live response generation using `/api/assistant/stream`.
-    - Responds with concrete DIY hacks (5-in-1 reflectors, practical lamps, china balls) and budget gear (e.g. Godox, Aputure Amaran, TTArtisan, Yongnuo) with realistic estimated costs.
-    - Preserves rated frame and analysis report without loss during chat.
-
-### E. SettingsContext Updates (`src/context/SettingsContext.tsx`)
-- Add `'youtube'` to `UILayoutType`, `ColorTheme`, and `UIStyleType`.
-- Provide smooth layout switching and synchronized active tabs.
+- **Tab 2: 🎨 LUT Color Lab & Frame Extractor**
+  - **Real-Time 3D LUT Presets**: Kodak Vision3 2383 Print, Teal & Orange Blockbuster, 1970s Technicolor 3-Strip, Bleach Bypass, Fuji Eterna, Fincher Emerald Noir.
+  - **Downloadable Real `.cube` LUT File Generator**: Generates genuine 3D LUT files ($17\times 17\times 17$ or $33\times 33\times 33$) that filmmakers can drag directly into DaVinci Resolve, Premiere Pro, and Final Cut Pro.
+  - **Frame Hex Palette Extractor**:
+    - Upload user frame stills or pick benchmark film reference frames.
+    - Canvas-based k-means / color quantization extracting 6 dominant hex swatches with luminance %, RGB, and color harmony.
+    - 1-click "Copy Palette", "Copy CSS Variables", or "Export Swatch Sheet".
+  - **Grade Fine-Tuning**: Lift/Shadows, Gamma/Midtones, Gain/Highlights, Saturation, and Film Grain strength.
 
 ---
 
-## 3. Step-by-Step Execution Sequence
+## 2. Integration Across the Entire Suite (8 Even Tools)
 
-1. **Update `src/context/SettingsContext.tsx`**:
-   - Register `'youtube'` across layout, style, and color theme types.
-   - Streamline settings modal tab state to `'themes' | 'layouts' | 'preferences'`.
-
-2. **Create `src/components/YouTubeAppLayout.tsx`**:
-   - Build authentic YouTube header, filter chip bar, desktop sidebar, and mobile dock.
-   - Wire responsive breakpoints (320px foldables to 1920px+ monitors).
-
-3. **Streamline `src/components/SettingsModal.tsx`**:
-   - Refactor into the 3 clean tabs: Visual Themes, Layout Style, and Audio & Preferences.
-   - Remove redundant terminology and eliminate confusing multi-level menus.
-
-4. **Upgrade `src/components/AssistantDrawer.tsx`**:
-   - Replace the horizontal pill rail with the dropdown director selector.
-
-5. **Enhance `src/components/ShotRater.tsx`**:
-   - Integrate the post-critique conversational AI follow-up module with budget gear recommendations.
-
-6. **Integrate into `src/App.tsx`**:
-   - Mount `YouTubeAppLayout` when the YouTube layout is active.
-
-7. **Verification & Testing**:
-   - Run `lint_applet` and `compile_applet`.
-   - Verify layout responsiveness on small screens (fold/flip phones), tablets, and desktops.
+Integrating `lighting-lut-lab` balances the navigation and layout across all views:
+1. **`App.tsx`**: Route handling for `lighting-lut-lab` with smooth transitions.
+2. **`Header.tsx`**: Add `SunMedium` or `Sliders` icon under "Craft", updating desktop and mobile sub-bars.
+3. **`HomeView.tsx`**: 8-tool grid (2 rows of 4 on desktop, 4 rows of 2 on tablet/mobile).
+4. **`PrimeHome.tsx`**: 8th Amazon Prime swimlane card ("LIGHTING & LUTS LAB • Included with Prime").
+5. **`NetflixHome.tsx`**: 8th Netflix horizontal rail instrument with match percentage and tags.
+6. **`YouTubeAppLayout.tsx`**: 8th YouTube category filter chip and sidebar entry.
+7. **`SidebarNav.tsx` & `BottomNavBar.tsx`**: Add the 8th tool to the vertical dock and mobile navigation sheets.
+8. **`CommandCenterModal.tsx`**: Search index entries for quick keyboard navigation (⌘K).
 
 ---
 
-## 4. Rollback & Deployment Readiness
+## 3. Rollback Safeguard & Vercel Optimization
 
-- **Rollback Safety**: State is managed in `SettingsContext` with persistent local storage. Clicking "Reset All Settings" immediately restores the original classic Celluloid layout.
-- **Vercel Push Ready**: All API calls proxy securely via `/api/*`. No API keys or secrets are stored in client bundles. Standard `npm run build` generates clean output.
-
----
-
-**Next Action**: Click **Proceed** to authorize this plan and begin implementation.
+- **Zero-Friction Rollback**: All logic self-contained in `src/components/LightingLutLab.tsx`. A single boolean flag `ENABLE_LIGHTING_LUT_LAB` or routing switch can disable or revert it instantly if desired.
+- **Client Performance & Bundle Hygiene**:
+  - Pure SVG and HTML5 Canvas calculations (no heavy external 3D WebGL engine dependencies needed).
+  - Fast client-side `.cube` file binary blob generation without any server latency.
+  - Lightweight, tree-shaken Lucide icons.
+- **Vercel & Production Verification**:
+  - Full TypeScript validation (`tsc --noEmit`).
+  - Production build bundle test (`npm run build`).

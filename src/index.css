@@ -852,6 +852,7 @@ html.has-custom-cursor .cursor-pointer {
   background-color: #0f172a !important;
 }
 
+.prime-hero-title,
 [data-ui-style="amazon-prime"] h1,
 [data-ui-style="amazon-prime"] h2,
 [data-ui-style="amazon-prime"] h3,
@@ -864,6 +865,7 @@ html.has-custom-cursor .cursor-pointer {
   font-weight: 800 !important;
   letter-spacing: -0.02em !important;
   color: #ffffff !important;
+  text-shadow: none !important;
 }
 
 [data-ui-style="amazon-prime"] .film-grain,
@@ -1163,10 +1165,10 @@ html.has-custom-cursor .cursor-pointer {
   color: #f4f4f5 !important;
 }
 
-[data-ui-style="godfather"] h1,
-[data-ui-style="godfather"] h2,
-[data-ui-style="godfather"] h3,
-[data-ui-style="godfather"] .font-courier {
+[data-ui-style="godfather"]:not([data-ui-layout="amazon-prime"]):not([data-ui-layout="netflix"]):not([data-ui-layout="youtube"]) h1:not(.prime-hero-title):not(.netflix-hero-title),
+[data-ui-style="godfather"]:not([data-ui-layout="amazon-prime"]):not([data-ui-layout="netflix"]):not([data-ui-layout="youtube"]) h2,
+[data-ui-style="godfather"]:not([data-ui-layout="amazon-prime"]):not([data-ui-layout="netflix"]):not([data-ui-layout="youtube"]) h3,
+[data-ui-style="godfather"]:not([data-ui-layout="amazon-prime"]):not([data-ui-layout="netflix"]):not([data-ui-layout="youtube"]) .font-courier {
   font-family: "Cinzel Decorative", "Playfair Display", serif !important;
   letter-spacing: 0.05em !important;
   font-weight: 900 !important;

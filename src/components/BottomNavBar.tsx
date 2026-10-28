@@ -14,6 +14,9 @@ import {
   Settings,
   MessageSquare,
   Sparkles,
+  RotateCcw,
+  Compass,
+  SunMedium,
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -31,7 +34,7 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   openAbout,
 }) => {
   const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
-  const { openSettings, triggerPageChangeEffect } = useSettings();
+  const { openSettings, resetAllSettings, triggerPageChangeEffect } = useSettings();
 
   const primaryItems = [
     { id: 'home', label: 'Home', icon: Home },
@@ -41,6 +44,18 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   ];
 
   const secondaryItems = [
+    {
+      id: 'lens-compression',
+      label: 'Lens Compression Lab',
+      desc: '35mm optical perspective & background parallax simulator',
+      icon: Compass,
+    },
+    {
+      id: 'lighting-lut-lab',
+      label: 'Lighting & LUT Lab',
+      desc: 'Virtual 3-point soundstage rig & .cube LUT generator',
+      icon: SunMedium,
+    },
     {
       id: 'gear-suggestor',
       label: 'Gear Suggestor',
@@ -136,19 +151,21 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               <button
                 onClick={() => {
                   setIsMoreSheetOpen(false);
-                  openSettings('ui-style');
+                  openSettings('themes');
                 }}
                 className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-amber-400 flex flex-col items-center gap-1.5 transition-colors cursor-pointer"
+                title="Visual Themes & Color Grading"
               >
-                <Layers className="w-4 h-4 text-amber-400" />
-                <span className="text-[10px]">Themes</span>
+                <Palette className="w-4 h-4 text-amber-400" />
+                <span className="text-[10px]">Appearance</span>
               </button>
               <button
                 onClick={() => {
                   setIsMoreSheetOpen(false);
-                  openSettings('layout');
+                  openSettings('layouts');
                 }}
                 className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-amber-400 flex flex-col items-center gap-1.5 transition-colors cursor-pointer"
+                title="Navigation Layouts"
               >
                 <Settings className="w-4 h-4 text-amber-400" />
                 <span className="text-[10px]">Layouts</span>
@@ -156,12 +173,13 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               <button
                 onClick={() => {
                   setIsMoreSheetOpen(false);
-                  openSettings('theme');
+                  resetAllSettings();
                 }}
-                className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-amber-400 flex flex-col items-center gap-1.5 transition-colors cursor-pointer"
+                className="p-2.5 rounded-xl bg-zinc-900 hover:bg-amber-950/40 border border-zinc-800 text-zinc-300 hover:text-amber-300 flex flex-col items-center gap-1.5 transition-colors cursor-pointer"
+                title="Rollback all settings to System default"
               >
-                <Palette className="w-4 h-4 text-amber-400" />
-                <span className="text-[10px]">Palettes</span>
+                <RotateCcw className="w-4 h-4 text-amber-400" />
+                <span className="text-[10px]">Rollback</span>
               </button>
               <button
                 onClick={() => {

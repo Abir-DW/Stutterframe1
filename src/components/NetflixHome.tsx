@@ -18,6 +18,8 @@ import {
   Sparkles,
   ArrowRight,
   X,
+  Compass,
+  SunMedium,
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -117,6 +119,32 @@ export const NetflixHome: React.FC<NetflixHomeProps> = ({ navigate }) => {
       accent: '#e50914',
     },
     {
+      id: 'lens-compression',
+      title: 'LENS COMPRESSION LAB',
+      category: 'Optical Rig Simulation',
+      match: '98% Match',
+      age: 'All Ages',
+      duration: 'Interactive Rig',
+      tags: ['35mm Perspective', 'Parallax Compression', 'Dual Viewfinder', 'Dolly Zoom'],
+      desc: 'Interactive 2D optical soundstage. Manipulate camera distance, subject distance, and focal length (14mm to 300mm) to experience real-time facial perspective distortion and Hitchcock vertigo effects.',
+      icon: Compass,
+      heroImg: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80',
+      accent: '#e50914',
+    },
+    {
+      id: 'lighting-lut-lab',
+      title: 'LIGHTING & LUT LAB',
+      category: 'Virtual Soundstage & Grade',
+      match: '99% Match',
+      age: 'All Ages',
+      duration: 'Real-time Physics',
+      tags: ['3-Point Lighting', 'Inverse-Square Falloff', '.CUBE 3D LUTs', 'Palette Extraction'],
+      desc: 'Calculate physical inverse-square falloff, light Kelvin blackbody radiation, and contrast stop ratios — paired with genuine 3D .cube LUT exports for DaVinci Resolve and Premiere.',
+      icon: SunMedium,
+      heroImg: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80',
+      accent: '#e50914',
+    },
+    {
       id: 'faq',
       title: 'FAQ & ASSET VAULT',
       category: 'Cinematography Knowledge',
@@ -185,7 +213,7 @@ export const NetflixHome: React.FC<NetflixHomeProps> = ({ navigate }) => {
           </div>
 
           {/* Hero Title in authentic Netflix condensed bold display */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-wider uppercase text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] leading-none font-['Bebas_Neue',sans-serif]">
+          <h1 className="netflix-hero-title text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-wider uppercase text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] leading-none font-['Bebas_Neue',sans-serif]">
             STUTTER<span className="text-[#e50914]">FRAME</span>
           </h1>
 

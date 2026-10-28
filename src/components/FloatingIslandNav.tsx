@@ -13,6 +13,9 @@ import {
   Settings,
   MessageSquare,
   Sparkles,
+  RotateCcw,
+  Compass,
+  SunMedium,
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -28,11 +31,13 @@ export const FloatingIslandNav: React.FC<FloatingIslandNavProps> = ({
   openAssistant,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { openSettings, triggerPageChangeEffect } = useSettings();
+  const { openSettings, resetAllSettings, triggerPageChangeEffect } = useSettings();
 
   const navItems = [
     { id: 'movie-picker', label: 'Picker', icon: Film },
     { id: 'shot-rater', label: 'Shot Rater', icon: Camera },
+    { id: 'lens-compression', label: 'Lens Lab', icon: Compass },
+    { id: 'lighting-lut-lab', label: 'Lighting', icon: SunMedium },
     { id: 'script-lab', label: 'Script', icon: FileText },
     { id: 'gear-suggestor', label: 'Gear', icon: ShoppingBag },
     { id: 'editor-advisor', label: 'Editing', icon: Scissors },
@@ -163,32 +168,35 @@ export const FloatingIslandNav: React.FC<FloatingIslandNavProps> = ({
           <button
             onClick={() => {
               setIsExpanded(false);
-              openSettings('ui-style');
+              openSettings('themes');
             }}
             className="p-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 flex flex-col items-center gap-1.5 transition-colors cursor-pointer border border-zinc-800/60"
-          >
-            <Layers className="w-4 h-4 text-amber-400" />
-            <span className="text-[10px]">Themes</span>
-          </button>
-          <button
-            onClick={() => {
-              setIsExpanded(false);
-              openSettings('theme');
-            }}
-            className="p-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 flex flex-col items-center gap-1.5 transition-colors cursor-pointer border border-zinc-800/60"
+            title="Visual Themes & Color Grading"
           >
             <Palette className="w-4 h-4 text-amber-400" />
-            <span className="text-[10px]">Palette</span>
+            <span className="text-[10px]">Appearance</span>
           </button>
           <button
             onClick={() => {
               setIsExpanded(false);
-              openSettings('layout');
+              openSettings('layouts');
             }}
             className="p-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 flex flex-col items-center gap-1.5 transition-colors cursor-pointer border border-zinc-800/60"
+            title="Navigation Layouts"
           >
             <Settings className="w-4 h-4 text-amber-400" />
             <span className="text-[10px]">Layouts</span>
+          </button>
+          <button
+            onClick={() => {
+              setIsExpanded(false);
+              resetAllSettings();
+            }}
+            className="p-2.5 rounded-xl bg-zinc-900/90 hover:bg-amber-950/40 text-zinc-300 hover:text-amber-300 flex flex-col items-center gap-1.5 transition-colors cursor-pointer border border-zinc-800/60 hover:border-amber-500/50"
+            title="Rollback all settings to System default"
+          >
+            <RotateCcw className="w-4 h-4 text-amber-400" />
+            <span className="text-[10px]">Rollback</span>
           </button>
         </div>
       )}

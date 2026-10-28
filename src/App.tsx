@@ -12,6 +12,8 @@ import { ScriptLab } from './components/ScriptLab';
 import { GearSuggestor } from './components/GearSuggestor';
 import { EditorAdvisor } from './components/EditorAdvisor';
 import { FaqView } from './components/FaqView';
+import { LensCompressionLab } from './components/LensCompressionLab';
+import { LightingLutLab } from './components/LightingLutLab';
 import { AssistantDrawer } from './components/AssistantDrawer';
 import { AboutModal } from './components/AboutModal';
 import { SettingsModal } from './components/SettingsModal';
@@ -43,6 +45,8 @@ function AppContent() {
         'gear-suggestor',
         'editor-advisor',
         'faq',
+        'lens-compression',
+        'lighting-lut-lab',
       ];
 
       if (validRoutes.includes(hash)) {
@@ -118,6 +122,8 @@ function AppContent() {
             {currentRoute === 'gear-suggestor' && <GearSuggestor />}
             {currentRoute === 'editor-advisor' && <EditorAdvisor />}
             {currentRoute === 'faq' && <FaqView />}
+            {currentRoute === 'lens-compression' && <LensCompressionLab />}
+            {currentRoute === 'lighting-lut-lab' && <LightingLutLab />}
           </main>
         </YouTubeAppLayout>
       ) : (
@@ -143,6 +149,8 @@ function AppContent() {
             {currentRoute === 'gear-suggestor' && <GearSuggestor />}
             {currentRoute === 'editor-advisor' && <EditorAdvisor />}
             {currentRoute === 'faq' && <FaqView />}
+            {currentRoute === 'lens-compression' && <LensCompressionLab />}
+            {currentRoute === 'lighting-lut-lab' && <LightingLutLab />}
           </main>
         </>
       )}
@@ -257,6 +265,18 @@ function AppContent() {
               className="hover:text-amber-400 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none"
             >
               FAQ &amp; Vault
+            </button>
+            <button
+              onClick={(e) => navigate('lens-compression', { x: e.clientX, y: e.clientY })}
+              className="text-amber-400 hover:text-amber-300 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none font-bold"
+            >
+              Lens Lab
+            </button>
+            <button
+              onClick={(e) => navigate('lighting-lut-lab', { x: e.clientX, y: e.clientY })}
+              className="text-amber-400 hover:text-amber-300 transition-colors cursor-pointer border-0 bg-transparent p-0 shadow-none outline-none font-bold"
+            >
+              Lighting &amp; LUTs
             </button>
             <button
               onClick={() => openSettings('credits')}

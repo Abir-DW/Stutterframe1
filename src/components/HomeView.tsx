@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   Video,
   HelpCircle,
+  Compass,
+  SunMedium,
 } from 'lucide-react';
 import { TypewriterHero } from './TypewriterHero';
 import { useSettings } from '../context/SettingsContext';
@@ -58,6 +60,16 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
       highlight: 'Friendly to Brutal tiers &bull; Lighting ratios & actionable fixes',
     },
     {
+      id: 'lens-compression',
+      title: 'LENS COMPRESSION LAB',
+      category: 'OPTICAL PERSPECTIVE & RIG SIMULATOR',
+      icon: Compass,
+      description:
+        'Interactive 2D optical soundstage. Manipulate camera distance, subject distance, and focal length (14mm to 300mm) to experience real-time facial perspective distortion, background parallax compression, and Hitchcock vertigo effects.',
+      badge: '35mm Full-Frame Optics',
+      highlight: 'Dual Viewfinder + Studio Rig &bull; Real 3D Perspective &amp; Dolly-Zoom',
+    },
+    {
       id: 'script-lab',
       title: 'THE SCRIPT LAB',
       category: 'SCREENPLAY DOCTOR & CO-WRITER',
@@ -86,6 +98,16 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
         'Auto-detect your device specs or input your CPU, RAM, and GPU. Matches you with the ideal editor (Free, Pay Once, or Subscription), showing official logos, install sizes, proxy requirements, and direct download links.',
       badge: 'Auto Hardware Detection & Grounded',
       highlight: 'Device spec benchmark &bull; Logos & official downloads',
+    },
+    {
+      id: 'lighting-lut-lab',
+      title: 'LIGHTING & LUT LAB',
+      category: 'SOUNDSTAGE PHYSICS & COLOR SCIENCE',
+      icon: SunMedium,
+      description:
+        'Interactive 3-point soundstage with inverse-square falloff calculations, Kelvin blackbody radiation, and live contrast stop ratio meters. Color grade sample frames and generate downloadable 3D .cube LUTs for DaVinci Resolve and Premiere.',
+      badge: '3-Point Rig & .CUBE Exports',
+      highlight: 'Kelvin blackbody physics &bull; Real 3D .cube exports &bull; Palette extraction',
     },
     {
       id: 'faq',
@@ -136,9 +158,12 @@ export const HomeView: React.FC<HomeViewProps> = ({ navigate }) => {
               PRIMARY CINEMATIC INSTRUMENTS
             </h2>
           </div>
+          <span className="text-[11px] font-mono text-amber-400/90 font-bold">
+            8 PRO INSTRUMENTS
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-6">
           {tools.map((tool) => {
             const Icon = tool.icon;
             return (

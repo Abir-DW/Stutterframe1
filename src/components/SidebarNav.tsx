@@ -17,6 +17,9 @@ import {
   ChevronRight,
   X,
   Sliders,
+  RotateCcw,
+  Compass,
+  SunMedium,
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -40,6 +43,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
     setIsMobileSidebarOpen,
     uiStyle,
     openSettings,
+    resetAllSettings,
     triggerPageChangeEffect,
   } = useSettings();
 
@@ -47,6 +51,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
     { id: 'home', label: 'Home Studio', icon: Home, badge: 'Hub' },
     { id: 'movie-picker', label: 'Movie Picker', icon: Film, badge: 'Discovery' },
     { id: 'shot-rater', label: 'Shot Rater', icon: Camera, badge: 'Vision' },
+    { id: 'lens-compression', label: 'Lens Lab', icon: Compass, badge: 'Optics' },
+    { id: 'lighting-lut-lab', label: 'Lighting & LUTs', icon: SunMedium, badge: 'Color' },
     { id: 'script-lab', label: 'Script Lab', icon: FileText, badge: 'Screenplay' },
     { id: 'gear-suggestor', label: 'Gear Suggestor', icon: ShoppingBag, badge: 'Hardware' },
     { id: 'editor-advisor', label: 'Editing Help', icon: Scissors, badge: 'NLE' },
@@ -178,32 +184,32 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
             <button
               onClick={() => {
                 setIsMobileSidebarOpen(false);
-                openSettings('ui-style');
+                openSettings('themes');
               }}
               className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-amber-400 flex items-center justify-center transition-colors cursor-pointer"
-              title="UI Architecture & Movie Themes"
+              title="Appearance Studio & Film Styles"
             >
-              <Layers className="w-3.5 h-3.5" />
+              <Palette className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => {
                 setIsMobileSidebarOpen(false);
-                openSettings('layout');
+                openSettings('layouts');
               }}
               className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-amber-400 flex items-center justify-center transition-colors cursor-pointer"
-              title="UI Layout Modes"
+              title="Navigation Layouts"
             >
               <Sliders className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => {
                 setIsMobileSidebarOpen(false);
-                openSettings('theme');
+                resetAllSettings();
               }}
-              className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-amber-400 flex items-center justify-center transition-colors cursor-pointer"
-              title="Color Palette Grading"
+              className="p-2 rounded-lg bg-zinc-900 hover:bg-amber-950/40 border border-zinc-800 text-zinc-400 hover:text-amber-300 flex items-center justify-center transition-colors cursor-pointer"
+              title="Rollback all settings to System default"
             >
-              <Palette className="w-3.5 h-3.5" />
+              <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
             </button>
             <button
               onClick={() => {

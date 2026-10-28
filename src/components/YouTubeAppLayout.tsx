@@ -19,6 +19,7 @@ import {
   Sliders,
   X,
   Compass,
+  SunMedium,
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -33,6 +34,8 @@ interface YouTubeAppLayoutProps {
 const YOUTUBE_CHIPS = [
   { id: 'all', label: 'All', route: 'home' },
   { id: 'shot-rater', label: 'Shot Rater & Vision AI', route: 'shot-rater' },
+  { id: 'lens-compression', label: 'Lens Compression Lab', route: 'lens-compression' },
+  { id: 'lighting-lut-lab', label: 'Lighting & LUT Lab', route: 'lighting-lut-lab' },
   { id: 'script-lab', label: 'Script Lab & Screenwriting', route: 'script-lab' },
   { id: 'gear-suggestor', label: 'Budget Gear Index (₹ INR / $)', route: 'gear-suggestor' },
   { id: 'movie-picker', label: 'Trending Movies & Vault', route: 'movie-picker' },
@@ -57,8 +60,12 @@ export const YouTubeAppLayout: React.FC<YouTubeAppLayoutProps> = ({
     if (!searchQuery.trim()) return;
 
     const q = searchQuery.toLowerCase();
-    if (q.includes('shot') || q.includes('rate') || q.includes('camera') || q.includes('lens') || q.includes('light')) {
+    if (q.includes('lighting') || q.includes('lut') || q.includes('kelvin') || q.includes('gaffer') || q.includes('falloff') || q.includes('color grade')) {
+      navigate('lighting-lut-lab');
+    } else if (q.includes('shot') || q.includes('rate') || q.includes('camera') || q.includes('vision')) {
       navigate('shot-rater');
+    } else if (q.includes('lens') || q.includes('perspective') || q.includes('dolly')) {
+      navigate('lens-compression');
     } else if (q.includes('script') || q.includes('scene') || q.includes('dialogue') || q.includes('screenplay')) {
       navigate('script-lab');
     } else if (q.includes('gear') || q.includes('budget') || q.includes('inr') || q.includes('buy') || q.includes('price')) {
@@ -77,6 +84,8 @@ export const YouTubeAppLayout: React.FC<YouTubeAppLayoutProps> = ({
     { id: 'home', label: 'Home', icon: Home },
     { id: 'movie-picker', label: 'Explore & Vault', icon: Flame },
     { id: 'shot-rater', label: 'Shot Rater', icon: Camera },
+    { id: 'lens-compression', label: 'Lens Lab', icon: Compass },
+    { id: 'lighting-lut-lab', label: 'Lighting & LUTs', icon: SunMedium },
     { id: 'script-lab', label: 'Script Lab', icon: FileText },
     { id: 'gear-suggestor', label: 'Gear Vault', icon: Package },
     { id: 'editor-advisor', label: 'Editor Advisor', icon: Scissors },

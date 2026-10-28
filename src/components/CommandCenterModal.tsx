@@ -17,6 +17,8 @@ import {
   Command,
   RotateCcw,
   MessageSquare,
+  Compass,
+  SunMedium,
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -95,6 +97,22 @@ export const CommandCenterModal: React.FC<CommandCenterModalProps> = ({
       icon: Camera,
       category: 'Analysis & Craft',
       badge: 'Vision AI',
+    },
+    {
+      id: 'lens-compression',
+      label: 'Lens Compression Lab',
+      desc: 'Interactive 35mm optical perspective & background parallax simulator',
+      icon: Compass,
+      category: 'Analysis & Craft',
+      badge: 'Optical Physics',
+    },
+    {
+      id: 'lighting-lut-lab',
+      label: 'Lighting & LUT Lab',
+      desc: 'Virtual 3-point soundstage rig, Kelvin falloff & .cube LUT generator',
+      icon: SunMedium,
+      category: 'Analysis & Craft',
+      badge: 'Color & Lighting',
     },
     {
       id: 'script-lab',

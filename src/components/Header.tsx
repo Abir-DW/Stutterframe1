@@ -18,9 +18,10 @@ import {
   Play,
   Bell,
   Plus,
+  Palette,
+  Compass,
+  SunMedium,
 } from 'lucide-react';
-import { ThemeSwitcher } from './ThemeSwitcher';
-import { LayoutSwitcher } from './LayoutSwitcher';
 import { useSettings } from '../context/SettingsContext';
 
 interface HeaderProps {
@@ -38,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const {
     openSettings,
+    theme,
     uiStyle,
     uiLayout,
     actionPosition,
@@ -52,6 +54,8 @@ export const Header: React.FC<HeaderProps> = ({
   const navItems = [
     { id: 'movie-picker', label: 'Movie Picker', desc: 'AI film curation & verified watch options', icon: Film, cat: 'Creation' },
     { id: 'shot-rater', label: 'Shot Rater', desc: 'Director of Photography vision feedback', icon: Camera, cat: 'Craft' },
+    { id: 'lens-compression', label: 'Lens Lab', desc: 'Optical compression & perspective visualizer', icon: Compass, cat: 'Craft' },
+    { id: 'lighting-lut-lab', label: 'Lighting & LUTs', desc: 'Virtual soundstage rig & .cube LUT generator', icon: SunMedium, cat: 'Craft' },
     { id: 'script-lab', label: 'Script Lab', desc: 'Screenplay co-writing & beat critique', icon: FileText, cat: 'Creation' },
     { id: 'gear-suggestor', label: 'Gear Suggestor', desc: 'Amazon & Flipkart India camera equipment', icon: ShoppingBag, cat: 'Logistics' },
     { id: 'editor-advisor', label: 'Editing Help', desc: 'Hardware-matched NLE advisor', icon: Scissors, cat: 'Logistics' },
@@ -67,6 +71,36 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const activeNavItem = navItems.find((n) => n.id === currentRoute);
+
+  const getActiveAppearanceLabel = () => {
+    if (uiLayout === 'amazon-prime' || uiStyle === 'amazon-prime') return 'Amazon Prime';
+    if (uiLayout === 'netflix' || uiStyle === 'netflix') return 'Netflix';
+    if (uiLayout === 'youtube' || uiStyle === 'youtube') return 'YouTube';
+    if (uiStyle !== 'default') {
+      const styleNames: Record<string, string> = {
+        godfather: 'Godfather',
+        batman: 'The Batman',
+        interstellar: 'Interstellar',
+        'train-to-busan': 'Train to Busan',
+        obsession: 'Obsession',
+        'matrix-code': 'The Matrix',
+        dune: 'Dune',
+        avatar: 'Avatar',
+        'blade-runner': 'Blade Runner',
+        'resident-evil': 'Resident Evil',
+        backrooms: 'Backrooms',
+        'hollywood-1969': 'Hollywood 69',
+        'apple-glass': 'Cupertino Glass',
+        'grand-budapest': 'Grand Budapest',
+        'kubrick-space': '2001 Space',
+      };
+      return styleNames[uiStyle] || uiStyle.replace('-', ' ');
+    }
+    if (theme !== 'default') {
+      return theme.replace('-', ' ');
+    }
+    return 'Classic';
+  };
 
   return (
     <header
@@ -340,69 +374,20 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
 
-        {/* Right Action: Layout Switcher, Theme Switcher, Settings, About & Assistant */}
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          {/* UI Layout Switcher Button */}
-          <LayoutSwitcher />
-
-          {/* Theme Palette Switcher */}
-          <ThemeSwitcher />
-
-          {/* UI Architecture Switcher Quick Trigger (Visible on sm and up; on mobile, accessible via Settings) */}
+        {/* Right Action: Single Unified Appearance Studio & Essential Controls */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          {/* Unified Appearance Studio Trigger (Consolidates Layout, Themes, & UI Architecture into One Intuitive Menu) */}
           <button
-            onClick={() => openSettings('ui-style')}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900/90 border border-zinc-800 hover:border-amber-500/50 text-xs font-mono text-zinc-300 hover:text-amber-400 transition-all cursor-pointer active:scale-95 touch-manipulation"
-            title="Switch UI Architecture (Apple Glass, Blade Runner, Budapest, 2001, Matrix, Classic)"
-            aria-label="UI Architecture Style"
+            onClick={() => openSettings('themes')}
+            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-zinc-900/90 hover:bg-zinc-850 border border-amber-500/40 hover:border-amber-400 text-xs font-mono text-zinc-200 hover:text-white transition-all cursor-pointer active:scale-95 touch-manipulation min-h-[36px] sm:min-h-[38px] shadow-sm group"
+            title="Appearance Studio — Switch Themes, UI Layouts, Film Styles & Color Palettes"
+            aria-label="Appearance, Themes and Layout Studio"
           >
-            <Layers className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden 2xl:inline text-[11px] font-mono text-zinc-300 capitalize">
-              {uiStyle === 'default'
-                ? 'Classic UI'
-                : uiStyle === 'netflix'
-                ? 'Netflix'
-                : uiStyle === 'amazon-prime'
-                ? 'Amazon Prime'
-                : uiStyle === 'godfather'
-                ? 'Godfather'
-                : uiStyle === 'batman'
-                ? 'Batman'
-                : uiStyle === 'interstellar'
-                ? 'Interstellar'
-                : uiStyle === 'train-to-busan'
-                ? 'Train to Busan'
-                : uiStyle === 'obsession'
-                ? 'Obsession'
-                : uiStyle === 'dune'
-                ? 'Dune'
-                : uiStyle === 'avatar'
-                ? 'Avatar'
-                : uiStyle === 'resident-evil'
-                ? 'Resident Evil'
-                : uiStyle === 'backrooms'
-                ? 'Backrooms'
-                : uiStyle === 'hollywood-1969'
-                ? 'Hollywood 1969'
-                : uiStyle === 'blade-runner'
-                ? 'Blade Runner'
-                : uiStyle === 'apple-glass'
-                ? 'Apple Glass'
-                : uiStyle === 'grand-budapest'
-                ? 'Budapest'
-                : uiStyle === 'kubrick-space'
-                ? '2001 Space'
-                : 'Matrix Code'}
+            <Palette className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-12 transition-transform flex-shrink-0" />
+            <span className="font-semibold text-white whitespace-nowrap">Appearance</span>
+            <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 capitalize truncate max-w-[110px]">
+              {getActiveAppearanceLabel()}
             </span>
-          </button>
-
-          {/* Settings & Customization Button (Layouts, Cursor, Theme, Credits) */}
-          <button
-            onClick={() => openSettings('layout')}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-900/90 border border-zinc-800 hover:border-amber-500/50 text-zinc-400 hover:text-amber-400 transition-all cursor-pointer active:scale-95 touch-manipulation"
-            title="Settings & Customization (Layouts, PC Cursor, Theme, Credits)"
-            aria-label="Preferences and Settings"
-          >
-            <Settings className="w-3.5 h-3.5" />
           </button>
 
           {/* About / Credits Button (Visible on sm and up; on mobile, accessible via Settings -> Credits) */}

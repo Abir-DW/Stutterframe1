@@ -17,6 +17,8 @@ import {
   Sparkles,
   ArrowRight,
   X,
+  Compass,
+  SunMedium,
 } from 'lucide-react';
 import { useSettings } from '../context/SettingsContext';
 
@@ -115,6 +117,32 @@ export const PrimeHome: React.FC<PrimeHomeProps> = ({ navigate }) => {
       tags: ['Hardware Auto-Detect', 'Proxy Analysis', 'Logos & Links', 'Free & Paid'],
     },
     {
+      id: 'lens-compression',
+      title: 'LENS COMPRESSION LAB',
+      category: 'Optical Rig Simulation',
+      imdb: '9.4',
+      year: '2026',
+      runtime: 'Interactive Soundstage',
+      badge: 'Prime Original',
+      desc: 'Interactive 2D optical soundstage. Manipulate camera distance, subject distance, and focal length (14mm to 300mm) to experience real-time facial perspective distortion and Hitchcock vertigo effects.',
+      icon: Compass,
+      heroImg: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80',
+      tags: ['35mm Full-Frame Optics', 'Parallax Compression', 'Dual Viewfinder', 'Dolly Zoom'],
+    },
+    {
+      id: 'lighting-lut-lab',
+      title: 'LIGHTING & LUT LAB',
+      category: 'Virtual Soundstage & Grade',
+      imdb: '9.5',
+      year: '2026',
+      runtime: 'Real-time Physics',
+      badge: 'Prime Original',
+      desc: 'Calculate physical inverse-square falloff, light Kelvin blackbody radiation, and contrast stop ratios — paired with genuine 3D .cube LUT exports for DaVinci Resolve and Premiere.',
+      icon: SunMedium,
+      heroImg: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80',
+      tags: ['3-Point Lighting Rig', 'Kelvin Radiation', '.CUBE 3D LUTs', 'Palette Extractor'],
+    },
+    {
       id: 'faq',
       title: 'FAQ & ASSET VAULT',
       category: 'Cinematography Field Reference',
@@ -188,7 +216,7 @@ export const PrimeHome: React.FC<PrimeHomeProps> = ({ navigate }) => {
           </div>
 
           {/* Hero Title in Amazon Clean Bold Typography */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="prime-hero-title text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight font-sans">
             StutterFrame Prime Cinematic Suite
           </h1>
 

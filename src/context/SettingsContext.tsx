@@ -158,9 +158,50 @@ const DEFAULT_CURSOR_TYPE: CursorType = 'default';
 const DEFAULT_CURSOR_DEFAULT_MODE: CursorDefaultMode = 'native';
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Initialize with sanitized, mutually exclusive state
+  const [uiStyle, setUIStyleState] = useState<UIStyleType>(() => {
+    try {
+      const saved = localStorage.getItem('stutterframe-ui-style') as UIStyleType;
+      const validStyles: UIStyleType[] = [
+        'default',
+        'youtube',
+        'netflix',
+        'amazon-prime',
+        'godfather',
+        'batman',
+        'interstellar',
+        'train-to-busan',
+        'obsession',
+        'matrix-code',
+        'dune',
+        'avatar',
+        'blade-runner',
+        'resident-evil',
+        'backrooms',
+        'hollywood-1969',
+        'apple-glass',
+        'grand-budapest',
+        'kubrick-space',
+      ];
+      return validStyles.includes(saved) ? saved : DEFAULT_UI_STYLE;
+    } catch {
+      return DEFAULT_UI_STYLE;
+    }
+  });
+
   const [uiLayout, setUILayoutState] = useState<UILayoutType>(() => {
     try {
       const saved = localStorage.getItem('stutterframe-ui-layout');
+      const savedStyle = localStorage.getItem('stutterframe-ui-style');
+      
+      // If a cinema style like 'godfather' or 'batman' is saved, don't allow a conflicting streaming layout
+      if (savedStyle && savedStyle !== 'default' && savedStyle !== 'netflix' && savedStyle !== 'amazon-prime' && savedStyle !== 'youtube') {
+        if (saved === 'netflix' || saved === 'amazon-prime' || saved === 'youtube') {
+          localStorage.removeItem('stutterframe-ui-layout');
+          return DEFAULT_UI_LAYOUT;
+        }
+      }
+
       // If user had previous youtube layout saved, sanitize it back to top-bar
       if (saved === 'youtube') {
         localStorage.removeItem('stutterframe-ui-layout');
@@ -225,36 +266,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  const [uiStyle, setUIStyleState] = useState<UIStyleType>(() => {
-    try {
-      const saved = localStorage.getItem('stutterframe-ui-style') as UIStyleType;
-      const validStyles: UIStyleType[] = [
-        'default',
-        'youtube',
-        'netflix',
-        'amazon-prime',
-        'godfather',
-        'batman',
-        'interstellar',
-        'train-to-busan',
-        'obsession',
-        'matrix-code',
-        'dune',
-        'avatar',
-        'blade-runner',
-        'resident-evil',
-        'backrooms',
-        'hollywood-1969',
-        'apple-glass',
-        'grand-budapest',
-        'kubrick-space',
-      ];
-      return validStyles.includes(saved) ? saved : DEFAULT_UI_STYLE;
-    } catch {
-      return DEFAULT_UI_STYLE;
-    }
-  });
-
   const [cursorType, setCursorTypeState] = useState<CursorType>(() => {
     try {
       const saved = localStorage.getItem('stutterframe-cursor-type') as CursorType;
@@ -313,6 +324,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [theme, setThemeState] = useState<ColorTheme>(() => {
     try {
       const saved = localStorage.getItem('stutterframe-theme') as ColorTheme;
+      const savedStyle = localStorage.getItem('stutterframe-ui-style');
+      // If a cinema style like 'godfather' or 'batman' is saved, purge conflicting streaming theme
+      if (savedStyle && savedStyle !== 'default' && savedStyle !== 'netflix' && savedStyle !== 'amazon-prime' && savedStyle !== 'youtube') {
+        if (saved === 'netflix' || saved === 'amazon-prime' || saved === 'youtube') {
+          localStorage.removeItem('stutterframe-theme');
+          return DEFAULT_THEME;
+        }
+      }
       return saved || DEFAULT_THEME;
     } catch {
       return DEFAULT_THEME;
@@ -440,6 +459,30 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         } catch {}
         applyUIStyleToDom('youtube');
         applyThemeToDom('youtube', customPalette);
+      } else {
+        // When picking a standard navigation layout (top-bar, dropdown, popup, sidebar, bottom-nav, floating-island),
+        // ensure we de-select any conflicting streaming platform style or theme so streaming CSS doesn't clash
+        setUIStyleState((prevStyle) => {
+          if (prevStyle === 'netflix' || prevStyle === 'amazon-prime' || prevStyle === 'youtube') {
+            try {
+              localStorage.setItem('stutterframe-ui-style', DEFAULT_UI_STYLE);
+            } catch {}
+            applyUIStyleToDom(DEFAULT_UI_STYLE);
+            return DEFAULT_UI_STYLE;
+          }
+          return prevStyle;
+        });
+
+        setThemeState((prevTheme) => {
+          if (prevTheme === 'netflix' || prevTheme === 'amazon-prime' || prevTheme === 'youtube') {
+            try {
+              localStorage.setItem('stutterframe-theme', DEFAULT_THEME);
+            } catch {}
+            applyThemeToDom(DEFAULT_THEME, customPalette);
+            return DEFAULT_THEME;
+          }
+          return prevTheme;
+        });
       }
     },
     [applyUILayoutToDom, applyUIStyleToDom, applyThemeToDom, customPalette]
@@ -534,7 +577,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       applyUIStyleToDom(newStyle);
 
-      // When picking Netflix or Prime theme, align layout as well for 1:1 integration
+      // When picking Netflix, Amazon Prime, or YouTube, align layout and theme fully
       if (newStyle === 'netflix') {
         setUILayoutState('netflix');
         setThemeState('netflix');
@@ -562,6 +605,31 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         } catch {}
         applyUILayoutToDom('youtube');
         applyThemeToDom('youtube', customPalette);
+      } else {
+        // When picking a cinema style (godfather, batman, interstellar, matrix-code, etc.) or default:
+        // 1. If currently in a streaming layout (netflix, amazon-prime, youtube), restore to default top-bar layout
+        setUILayoutState((prevLayout) => {
+          if (prevLayout === 'netflix' || prevLayout === 'amazon-prime' || prevLayout === 'youtube') {
+            try {
+              localStorage.setItem('stutterframe-ui-layout', DEFAULT_UI_LAYOUT);
+            } catch {}
+            applyUILayoutToDom(DEFAULT_UI_LAYOUT);
+            return DEFAULT_UI_LAYOUT;
+          }
+          return prevLayout;
+        });
+
+        // 2. Clear any conflicting streaming theme (netflix, amazon-prime, youtube) from theme state and DOM
+        setThemeState((prevTheme) => {
+          if (prevTheme === 'netflix' || prevTheme === 'amazon-prime' || prevTheme === 'youtube') {
+            try {
+              localStorage.setItem('stutterframe-theme', DEFAULT_THEME);
+            } catch {}
+            applyThemeToDom(DEFAULT_THEME, customPalette);
+            return DEFAULT_THEME;
+          }
+          return prevTheme;
+        });
       }
     },
     [applyUIStyleToDom, applyUILayoutToDom, applyThemeToDom, customPalette]
@@ -576,8 +644,63 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         console.warn('Storage error', err);
       }
       applyThemeToDom(newTheme, customPalette);
+
+      if (newTheme === 'netflix') {
+        setUIStyleState('netflix');
+        setUILayoutState('netflix');
+        try {
+          localStorage.setItem('stutterframe-ui-style', 'netflix');
+          localStorage.setItem('stutterframe-ui-layout', 'netflix');
+        } catch {}
+        applyUIStyleToDom('netflix');
+        applyUILayoutToDom('netflix');
+      } else if (newTheme === 'amazon-prime') {
+        setUIStyleState('amazon-prime');
+        setUILayoutState('amazon-prime');
+        try {
+          localStorage.setItem('stutterframe-ui-style', 'amazon-prime');
+          localStorage.setItem('stutterframe-ui-layout', 'amazon-prime');
+        } catch {}
+        applyUIStyleToDom('amazon-prime');
+        applyUILayoutToDom('amazon-prime');
+      } else if (newTheme === 'youtube') {
+        setUIStyleState('youtube');
+        setUILayoutState('youtube');
+        try {
+          localStorage.setItem('stutterframe-ui-style', 'youtube');
+          localStorage.setItem('stutterframe-ui-layout', 'youtube');
+        } catch {}
+        applyUIStyleToDom('youtube');
+        applyUILayoutToDom('youtube');
+      } else {
+        // When choosing an independent color grade (cyberpunk, emerald, noir, wes-anderson, etc.):
+        // If current style is a streaming platform or a movie style with strict custom palettes (like godfather or batman),
+        // revert uiStyle to default so the color grade renders cleanly without conflicting font/border CSS
+        setUIStyleState((prevStyle) => {
+          if (prevStyle === 'netflix' || prevStyle === 'amazon-prime' || prevStyle === 'youtube' || prevStyle === 'godfather' || prevStyle === 'batman') {
+            try {
+              localStorage.setItem('stutterframe-ui-style', DEFAULT_UI_STYLE);
+            } catch {}
+            applyUIStyleToDom(DEFAULT_UI_STYLE);
+            return DEFAULT_UI_STYLE;
+          }
+          return prevStyle;
+        });
+
+        // If current layout is a streaming layout, restore to default cinema layout
+        setUILayoutState((prevLayout) => {
+          if (prevLayout === 'netflix' || prevLayout === 'amazon-prime' || prevLayout === 'youtube') {
+            try {
+              localStorage.setItem('stutterframe-ui-layout', DEFAULT_UI_LAYOUT);
+            } catch {}
+            applyUILayoutToDom(DEFAULT_UI_LAYOUT);
+            return DEFAULT_UI_LAYOUT;
+          }
+          return prevLayout;
+        });
+      }
     },
-    [customPalette, applyThemeToDom]
+    [applyThemeToDom, applyUIStyleToDom, applyUILayoutToDom, customPalette]
   );
 
   const setCustomPalette = useCallback(
